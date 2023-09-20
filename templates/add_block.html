@@ -1,0 +1,6 @@
+<form method="post">
+    {% csrf_token %}
+    <label for="block_id">Block ID:</label>
+    <input type="text" name="block_id" required>
+    <input type="submit" value="Add Block">
+</form>
