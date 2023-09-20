@@ -19,6 +19,8 @@ from django.contrib import admin
 from . import views  # Assuming the views are in the same directory for now
 
 urlpatterns = [
+    path('app/', views.vue_app, name='vue_app'),
+    path('api/blocks/', views.block_list, name='block-list'),
     path('admin/', admin.site.urls),
     path('', views.list_blocks, name='root'),
     path('add_block/', views.add_block, name='add_block'),

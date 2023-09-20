@@ -1,3 +1,5 @@
+from rest_framework.decorators import api_view
+from .serializers import BlockSerializer
 import threading
 import time
 from django.http import JsonResponse
@@ -117,3 +119,12 @@ def create_block(request):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid method"}, status=405)
+
+def vue_app(request):
+    return render(request, 'index.html')
+
+@api_view(['GET'])
+def block_list(request):
+    blocks = Block.objects.all()
+    serializer = BlockSerializer(blocks, many=True)
+    return JsonResponse(serializer.data, safe=False)
