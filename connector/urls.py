@@ -14,7 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path
+from django.urls import path, re_path
 from django.contrib import admin
 from . import views  # Assuming the views are in the same directory for now
 
@@ -32,5 +32,5 @@ urlpatterns = [
     path('stop_block/<int:block_id>/', views.stop_block, name='stop_block'),
     path('delete_block/<int:block_id>/', views.delete_block, name='delete_block'),
     path('create_block/', views.create_block, name='create_block'),
-
+    re_path(r'^.*$', views.vue_app, name='vue_app')
 ]

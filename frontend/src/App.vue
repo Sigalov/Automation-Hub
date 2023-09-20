@@ -2,18 +2,14 @@
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
     <h1>Practitest Connector</h1>
-    <BlockList />
+    <router-link to="/blocks">Blocks</router-link> <!-- Add this line for navigation -->
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import BlockList from './BlockList.vue'; // Assuming BlockList.vue is in the same directory
-
 export default {
   name: 'App',
-  components: {
-    BlockList
-  }
 }
 </script>
 
