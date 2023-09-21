@@ -2,7 +2,14 @@
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png">
     <h1>Practitest Connector</h1>
-    <router-link to="/blocks">Blocks</router-link> <!-- Add this line for navigation -->
+
+    <!-- Navbar or Header -->
+    <div>
+      <a href="/">Home</a> |
+      <router-link to="/blocks">Blocks</router-link> <!-- This is your existing link to blocks -->
+    </div>
+
+    <!-- Content Area -->
     <router-view></router-view>
   </div>
 </template>

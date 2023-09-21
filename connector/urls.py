@@ -17,12 +17,15 @@ Including another URLconf
 from django.urls import path, re_path
 from django.contrib import admin
 from . import views  # Assuming the views are in the same directory for now
+from django.views.generic import TemplateView
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
     path('app/', views.vue_app, name='vue_app'),
     path('api/blocks/', views.block_list, name='block-list'),
     path('admin/', admin.site.urls),
-    path('', views.list_blocks, name='root'),
     path('add_block/', views.add_block, name='add_block'),
     path('list_blocks/', views.list_blocks, name='list_blocks'),
     path('start_service/<str:block_id>/', views.start_service, name='start_service'),
@@ -32,5 +35,10 @@ urlpatterns = [
     path('stop_block/<int:block_id>/', views.stop_block, name='stop_block'),
     path('delete_block/<int:block_id>/', views.delete_block, name='delete_block'),
     path('create_block/', views.create_block, name='create_block'),
-    re_path(r'^.*$', views.vue_app, name='vue_app')
+    # path("", TemplateView.as_view(template_name="index.html")),
+    path('', views.list_blocks, name='list_blocks'),
+    re_path(r'^.*$', views.vue_app, name='vue_app'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
