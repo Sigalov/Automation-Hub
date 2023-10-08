@@ -1,4 +1,5 @@
 
+
 {% load static %}
 <html>
 <head>
@@ -14,7 +15,7 @@
 
     .logo-container img {
         width: 400px;
-        height: auto;  # Maintain aspect ratio
+        height: auto;
     }
 </style>
 </head>
@@ -29,6 +30,7 @@
         <tr>
             <th>Block ID</th>
             <th>Status</th>
+            <th>Fields</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -36,11 +38,18 @@
         {% for block in blocks %}
         <tr>
             <td>{{ block.id }}</td>
-            <td>{{ block.block_name }}</td>
+{#            <td>{{ block.block_name }}</td>#}
             <td>{{ block.status }}</td>
             <td>
+                App Name: <input type="text" name="app_name_{{ block.id }}" value="{{ block.app_name }}"><br>
+                PT Username: <input type="text" name="pt_username_{{ block.id }}" value="{{ block.pt_username }}"><br>
+                PT Token: <input type="text" name="pt_token_{{ block.id }}" value="{{ block.pt_token }}"><br>
+                AWS Access Key: <input type="text" name="aws_access_key_{{ block.id }}" value="{{ block.aws_access_key }}"><br>
+                AWS Secret Key: <input type="text" name="aws_secret_key_{{ block.id }}" value="{{ block.aws_secret_key }}"><br>
+                Filter ID List: <input type="text" name="filter_id_list_{{ block.id }}" value="{{ block.filter_id_list }}"><br>
+                <td>
                 <button onclick="startBlock('{{ block.id }}')">Start</button>
-                <button onclick="stopBlock('{{ block.id }}')">Stop</button>
+                <button onclick="stopBlock('{{ block.id }}')">Stop</button><br><br>
                 <button onclick="deleteBlock('{{ block.id }}')">Delete</button>
             </td>
         </tr>
