@@ -1,3 +1,4 @@
+
 {% load static %}
 <!doctype html>
 <html lang="">
@@ -10,9 +11,26 @@
         <script defer="defer" src="{% static 'js/chunk-vendors.1e4b90d8.js' %}"></script>
         <script defer="defer" src="{% static 'js/app.5c5b8330.js' %}"></script>
         <link href="{% static 'css/app.b2d625b8.css' %}" rel="stylesheet">
-   </head>
+
+<style>
+    .logo-container {
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    .logo-container img {
+        width: 300px;
+        height: auto;  # Maintain aspect ratio
+    }
+</style>
+</head>
    <body>
       <noscript><strong>We're sorry but frontend doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript>
-      <div id="app"></div>
+
+<div class="logo-container">
+    <img src="{% static 'header.png' %}" alt="Logo" width="300" height="300">
+</div>
+<div id="app"></div>
    </body>
 </html>

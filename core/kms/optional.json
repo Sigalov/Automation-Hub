@@ -1,0 +1,23 @@
+{
+  "environment": "---f-30761",
+  "browser": {
+      "test": "---f-30772",
+      "testset": "---f-30772",
+      "default": "pc_chrome"
+  },
+  "update_host_file": "---f-81889",
+  "execute_at_night": "---f-41840",
+  "verify_versions": "---f-50342",
+  "kmsBuild": "---f-9012",
+  "playerVersion": "---f-43698",
+  "keaVersion": "---f-50022",
+  "assigned_to": "assigned-to-id",
+  "automation_arguments": "---f-89349",
+  "partner": "---f-131239",
+  "base_url": "---f-131240",
+  "admin_username": "---f-131241",
+  "admin_password": "---f-131242",
+  "login_username": "---f-131243",
+  "login_password": "---f-131244",
+  "playerVersionV7": "---f-147484"
+}

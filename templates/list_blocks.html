@@ -1,10 +1,28 @@
+
 {% load static %}
 <html>
 <head>
     <link rel="stylesheet" type="text/css" href="{% static 'connector/table_styles.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    .logo-container {
+        text-align: left;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    .logo-container img {
+        width: 400px;
+        height: auto;  # Maintain aspect ratio
+    }
+</style>
 </head>
 <body>
+<div class="logo-container">
+    <img src="{% static 'header.png' %}" alt="Logo">
+</div>
+
 <table>
     <thead>
         <button id="createNewBlockBtn">Create New Block</button>

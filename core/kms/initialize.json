@@ -1,0 +1,19 @@
+{
+    "practitest_project_id": "1328",
+    "practitest_trigger_filter_id": "2283845",
+    "practitest_execute_automated": "---f-34162",
+    "practitest_automation_run_only": "---f-81401",
+    "processed_field_id": "---f-30327",
+    "processed_field_value": "Processed",
+    "practitest_automation_trigger": "---f-30327",
+    "practitest_automation_trigger_value": "To Execute",
+    "practitest_aws_instance_type": "---f-81393",
+    "practitest_debug": {
+      "test": "---f-188103",
+      "testset": "---f-81391",
+      "default": "false"
+    },
+    "execution_type":"AWS",
+    "sync_exec":"---f-90100"
+
+}
