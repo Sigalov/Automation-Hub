@@ -17,6 +17,10 @@
         width: 400px;
         height: auto;
     }
+    .console-output {
+        width: 500px;
+        height: 300px;
+    }
 </style>
 </head>
 <body>
@@ -47,6 +51,8 @@
                 AWS Access Key: <input type="text" name="aws_access_key_{{ block.id }}" value="{{ block.aws_access_key }}"><br>
                 AWS Secret Key: <input type="text" name="aws_secret_key_{{ block.id }}" value="{{ block.aws_secret_key }}"><br>
                 Filter ID List: <input type="text" name="filter_id_list_{{ block.id }}" value="{{ block.filter_id_list }}"><br>
+                Console Output: <br><textarea id="console_output_{{ block.id }}" data-block-id="{{ block.id }}" class="console-output">{{ block.console_output }}</textarea><br>
+
                 <td>
                 <button onclick="startBlock('{{ block.id }}')">Start</button>
                 <button onclick="stopBlock('{{ block.id }}')">Stop</button><br><br>

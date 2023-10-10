@@ -40,7 +40,21 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
+    'channels',
 ]
+
+# Use channels layer as the default backend for django's ASGI interface
+ASGI_APPLICATION = 'connector.routing.application'
+
+# Channels layer settings
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

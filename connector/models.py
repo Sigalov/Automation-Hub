@@ -11,6 +11,10 @@ class Block(models.Model):
     aws_access_key = models.CharField(max_length=255, blank=True, null=True)
     aws_secret_key = models.CharField(max_length=255, blank=True, null=True)
     filter_id_list = models.TextField(blank=True, null=True)
+    console_output = models.TextField(default="", blank=True)
 
-    def __str__(self):
-        return self.block_id
+# class ServiceBlock(models.Model):
+#     console_output = models.TextField(default="", blank=True)
+#
+#     def __str__(self):
+#         return self.block_id

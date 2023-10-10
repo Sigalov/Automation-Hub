@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework.decorators import api_view
 
 from connector.static.core.kms.kms_practitest import KmsPractiTest
@@ -29,9 +31,8 @@ def list_blocks(request):
 def start_block(request, block_id):
     block = Block.objects.get(id=block_id)
     block.status = "Starting..."
+    block.console_output += f"[{datetime.datetime.now()}] Block {block_id} started.\n"
     block.save()
-
-    # Simulating some background process using threading
 
     # Fetching block parameters from the POST request
     app_name = request.POST.get('app_name')
@@ -65,18 +66,19 @@ def start_block(request, block_id):
         instance = KmsPractiTest(more_data, **initial_data)
         instance.start_service()  # This line assumes the KmsPractiTest class has been imported and defined
 
-    return JsonResponse({'status': 'starting'})
+    return JsonResponse({'status': 'success'})
 
 
 @csrf_exempt
 def stop_block(request, block_id):
     block = Block.objects.get(id=block_id)
     block.status = "Stopping..."
+    block.console_output += f"[{datetime.datetime.now()}] Block {block_id} stopped.\n"
     block.save()
 
     # Simulating some background process using threading
     threading.Thread(target=dummy_block_stop_service, args=(block,)).start()
-    return JsonResponse({'status': 'stopping'})
+    return JsonResponse({'status': 'success'})
 
 
 # Simulating service logic for demonstration purposes
@@ -140,8 +142,9 @@ def get_status(request, block_id):
 @csrf_exempt
 def delete_block(request, block_id):
     block = Block.objects.get(id=block_id)
+    block.console_output += f"[{datetime.datetime.now()}] Block {block_id} deleted.\n"
     block.delete()
-    return JsonResponse({'status': 'deleted'})
+    return JsonResponse({'status': 'success'})
 
 
 @csrf_exempt
@@ -168,6 +171,9 @@ def create_block(request):
 def vue_app(request):
     return render(request, 'index.html')
 
+def get_console_output(request, block_id):
+    block = Block.objects.get(pk=block_id)
+    return JsonResponse({'console_output': block.console_output})
 
 @api_view(['GET'])
 def block_list(request):
