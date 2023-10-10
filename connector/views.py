@@ -1,4 +1,6 @@
 from rest_framework.decorators import api_view
+
+from connector.static.core.kms.kms_practitest import KmsPractiTest
 from .serializers import BlockSerializer
 import threading
 import time
@@ -6,6 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from .models import Block
+
 
 @csrf_exempt  # To exempt from CSRF checks for demonstration purposes
 def add_block(request):
@@ -16,9 +19,11 @@ def add_block(request):
             return redirect('list_blocks')  # Redirect to the list view after adding
     return render(request, 'add_block.html')  # Render the form for adding a block
 
+
 def list_blocks(request):
     blocks = Block.objects.all()
     return render(request, 'list_blocks.html', {'blocks': blocks})
+
 
 @csrf_exempt
 def start_block(request, block_id):
@@ -27,8 +32,41 @@ def start_block(request, block_id):
     block.save()
 
     # Simulating some background process using threading
-    threading.Thread(target=dummy_block_start_service, args=(block,)).start()
+
+    # Fetching block parameters from the POST request
+    app_name = request.POST.get('app_name')
+    pt_username = request.POST.get('pt_username')
+    pt_token = request.POST.get('pt_token')
+    aws_access_key = request.POST.get('aws_access_key')
+    aws_secret_key = request.POST.get('aws_secret_key')
+    filter_id_list = request.POST.get('filter_id_list')
+
+    # Saving these parameters to the block
+    block.app_name = app_name
+    block.pt_username = pt_username
+    block.pt_token = pt_token
+    block.aws_access_key = aws_access_key
+    block.aws_secret_key = aws_secret_key
+    block.filter_id_list = filter_id_list
+    block.save()
+
+    # Provided microservice logic
+    initial_data = {}
+    initial_data["project_name"] = app_name
+    initial_data["pt_username"] = pt_username
+    initial_data["pt_token"] = pt_token
+    initial_data["access_key"] = aws_access_key
+    initial_data["secret_key"] = aws_secret_key
+    initial_data["filter_id_list"] = filter_id_list
+
+    if app_name == 'kms':
+        # The following line is a placeholder; the actual loading function should be integrated
+        more_data = {}  # Placeholder for load_data_from_json("kms/optional.json")
+        instance = KmsPractiTest(more_data, **initial_data)
+        instance.start_service()  # This line assumes the KmsPractiTest class has been imported and defined
+
     return JsonResponse({'status': 'starting'})
+
 
 @csrf_exempt
 def stop_block(request, block_id):
@@ -40,16 +78,19 @@ def stop_block(request, block_id):
     threading.Thread(target=dummy_block_stop_service, args=(block,)).start()
     return JsonResponse({'status': 'stopping'})
 
+
 # Simulating service logic for demonstration purposes
 def dummy_block_start_service(block):
     time.sleep(5)  # Simulating some process that takes 5 seconds
     block.status = "Started"
     block.save()
 
+
 def dummy_block_stop_service(block):
     time.sleep(5)  # Simulating some process that takes 5 seconds
     block.status = "Stopped"
     block.save()
+
 
 # Integrate the starting logic into the start_service view
 def start_service(request, block_id):
@@ -85,6 +126,7 @@ def stop_service(request, block_id):
 
     return JsonResponse({"message": f"Service stopped for {block_id}"})
 
+
 def get_status(request, block_id):
     block = Block.objects.filter(block_id=block_id).first()
     if not block:
@@ -94,11 +136,13 @@ def get_status(request, block_id):
         return JsonResponse({"status": "RUNNING"})
     return JsonResponse({"status": "STOPPED"})
 
+
 @csrf_exempt
 def delete_block(request, block_id):
     block = Block.objects.get(id=block_id)
     block.delete()
     return JsonResponse({'status': 'deleted'})
+
 
 @csrf_exempt
 def create_block(request):
@@ -120,8 +164,10 @@ def create_block(request):
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid method"}, status=405)
 
+
 def vue_app(request):
     return render(request, 'index.html')
+
 
 @api_view(['GET'])
 def block_list(request):

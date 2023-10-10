@@ -58,9 +58,28 @@
 </table>
 
 <script>
-    function startBlock(blockId) {
-        console.log("Starting block with ID:", blockId);
-        fetch(`/start_block/${blockId}/`, {
+
+function startBlock(blockId) {
+    console.log("Starting block with ID:", blockId);
+    const data = {
+        'app_name': document.querySelector(`input[name="app_name_${blockId}"]`).value,
+        'pt_username': document.querySelector(`input[name="pt_username_${blockId}"]`).value,
+        'pt_token': document.querySelector(`input[name="pt_token_${blockId}"]`).value,
+        'aws_access_key': document.querySelector(`input[name="aws_access_key_${blockId}"]`).value,
+        'aws_secret_key': document.querySelector(`input[name="aws_secret_key_${blockId}"]`).value,
+        'filter_id_list': document.querySelector(`input[name="filter_id_list_${blockId}"]`).value
+    };
+    fetch(`/start_block/${blockId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => location.reload());
+}
+/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}'
