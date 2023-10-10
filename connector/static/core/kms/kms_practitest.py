@@ -1,8 +1,10 @@
 import logging
 from time import sleep
 
-from aws_infra.base_practitest import BasePractiTest
-from static_methods import try_to_get_from_dict
+from connector.static.core.base_practitest import BasePractiTest
+from connector.static.core.static_methods import try_to_get_from_dict
+
+import logging
 
 
 class KmsPractiTest(BasePractiTest):

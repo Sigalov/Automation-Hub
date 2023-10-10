@@ -2,8 +2,8 @@ import logging
 import time
 from enum import Enum
 import json
-import static_methods
-from aws_sqs_pusher import SQSPusher
+from connector.static.core import static_methods
+from connector.static.core.aws_sqs_pusher import SQSPusher
 
 
 class BasePractiTest:
