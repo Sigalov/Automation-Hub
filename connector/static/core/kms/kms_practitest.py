@@ -1,15 +1,11 @@
-import logging
 from time import sleep
-
 from connector.static.core.base_practitest import BasePractiTest
 from connector.static.core.static_methods import try_to_get_from_dict
-
 import logging
 
-
 class KmsPractiTest(BasePractiTest):
-    def __init__(self, more_data=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, more_data=None, block=None, *args, **kwargs):
+        super().__init__(block=block, *args, **kwargs)
         # Additional initialization for KmsPractiTest
         self.ENVIRONMENT = more_data['environment']
         self.BROWSER = more_data['browser']
@@ -33,14 +29,14 @@ class KmsPractiTest(BasePractiTest):
         if super().is_to_trigger():
             tests_to_execute = self.trigger_execution()
             self.push_to_sqs(tests_to_execute)
-            logging.info('DEBUG: Done')
+            self.log('DEBUG: Done')
             sleep(10)
         else:
-            logging.info("no sets found under filter id")
+            self.log(f"no sets found under filter id")
 
     def trigger_execution(self):
         try:
-            logging.info("Execution Triggered")
+            self.log(f"Execution Triggered")
             filter_test_sets = self.get_all_testsets_under_specific_filter_id(self.PRACTITEST_TRIGGER_FILTER_ID)  # TODO make multiple filter - list
             initial_tests_list = super().create_tests_json(filter_test_sets)
             if not initial_tests_list:
@@ -72,7 +68,7 @@ class KmsPractiTest(BasePractiTest):
                                 initial_test['login_password'] =  try_to_get_from_dict(test_custom_fields, self.LOGIN_PASSWORD, default_value='')
                                 initial_test['playerVersionV7'] =  try_to_get_from_dict(test_custom_fields, self.PLAYER_VERSION_V7, default_value='')
                 except:
-                    logging.info(f'Error: failed to parse test set/ test attributes')
+                    self.log(f'Error: failed to parse test set/ test attributes')
         except:
-            logging.info("Error: failed to trigger execution, skipping this execution")
+            self.log(f"Error: failed to trigger execution, skipping this execution")
         return initial_tests_list

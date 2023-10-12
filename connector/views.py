@@ -1,4 +1,6 @@
 import datetime
+import json
+import logging
 
 from rest_framework.decorators import api_view
 
@@ -10,6 +12,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from .models import Block
+from .static.core import static_methods
 
 
 @csrf_exempt  # To exempt from CSRF checks for demonstration purposes
@@ -26,7 +29,6 @@ def list_blocks(request):
     blocks = Block.objects.all()
     return render(request, 'list_blocks.html', {'blocks': blocks})
 
-
 @csrf_exempt
 def start_block(request, block_id):
     block = Block.objects.get(id=block_id)
@@ -35,12 +37,13 @@ def start_block(request, block_id):
     block.save()
 
     # Fetching block parameters from the POST request
-    app_name = request.POST.get('app_name')
-    pt_username = request.POST.get('pt_username')
-    pt_token = request.POST.get('pt_token')
-    aws_access_key = request.POST.get('aws_access_key')
-    aws_secret_key = request.POST.get('aws_secret_key')
-    filter_id_list = request.POST.get('filter_id_list')
+    data = json.loads(request.body)
+    app_name = data['app_name']
+    pt_username = data['pt_username']
+    pt_token = data['pt_token']
+    aws_access_key = data['aws_access_key']
+    aws_secret_key = data['aws_secret_key']
+    filter_id_list = data['filter_id_list']
 
     # Saving these parameters to the block
     block.app_name = app_name
@@ -51,8 +54,8 @@ def start_block(request, block_id):
     block.filter_id_list = filter_id_list
     block.save()
 
-    # Provided microservice logic
     initial_data = {}
+    initial_data = static_methods.load_data_from_json("connector/static/core/initialize.json")
     initial_data["project_name"] = app_name
     initial_data["pt_username"] = pt_username
     initial_data["pt_token"] = pt_token
@@ -62,11 +65,14 @@ def start_block(request, block_id):
 
     if app_name == 'kms':
         # The following line is a placeholder; the actual loading function should be integrated
-        more_data = {}  # Placeholder for load_data_from_json("kms/optional.json")
-        instance = KmsPractiTest(more_data, **initial_data)
+        more_data = static_methods.load_data_from_json("connector/static/core/kms/optional.json")
+        instance = KmsPractiTest(more_data, block=block, **initial_data)
         instance.start_service()  # This line assumes the KmsPractiTest class has been imported and defined
+    else:
+        block.console_output += f"[{datetime.datetime.now()}] Block {block_id} started.\n"
+        block.save()
 
-    return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'starting...'})
 
 
 @csrf_exempt
@@ -180,3 +186,14 @@ def block_list(request):
     blocks = Block.objects.all()
     serializer = BlockSerializer(blocks, many=True)
     return JsonResponse(serializer.data, safe=False)
+
+def log_to_block_console(block_id, message):
+    """
+    Append a message to the block's console output.
+    """
+    try:
+        block = Block.objects.get(id=block_id)
+        block.console_output += f"[{datetime.datetime.now()}] {message}\n"
+        block.save()
+    except Block.DoesNotExist:
+        pass  # If the block does not exist, simply pass.

@@ -27,8 +27,10 @@ class BasePractiTest:
                  practitest_aws_instance_type=None,
                  practitest_debug=None,
                  execution_type=None,
-                 sync_exec=None
+                 sync_exec=None,
+                 block=None
                  ):
+        self.block = block
         # PracitTest fields ID
         self.PRACTITEST_USER_NAME = pt_username
         self.PRACTITEST_TRIGGER_FILTER_ID_LIST = filter_id_list
@@ -73,10 +75,16 @@ class BasePractiTest:
         NO_RUN = 'NO RUN'
         N_A = 'N/A'
 
+    def log(self, message):
+        # Update the block's console output if block is present
+        if self.block:
+            self.block.console_output += message + "\n"
+            self.block.save()
+
     def create_tests_json(self, filter_test_sets):
         tests_dict = [] #Contains all the tests to be executed (pushed to queue)
         if not filter_test_sets:
-            logging.info(f'Warning: No test set found under {self.PRACTITEST_TRIGGER_FILTER_ID} filter, but should be found')
+            self.log(f'Warning: No test set found under {self.PRACTITEST_TRIGGER_FILTER_ID} filter, but should be found')
             return
         for test_set in filter_test_sets:
             try:
@@ -104,7 +112,7 @@ class BasePractiTest:
                     test_dict['sync_exec'] = static_methods.try_to_get_from_dict(test_set_custom_fields, self.SYNCHRONOUS_EXECUTION, is_boolean=True)
                     tests_dict.append(test_dict)
             except:
-                logging.info(f'Error: failed to parse test set/ test attributes')
+                self.log(f'Error: failed to parse test set/ test attributes')
         return tests_dict
 
     def get_prioritized_value(self, dict_value, test_set, test, is_boolean=False):
@@ -194,13 +202,13 @@ class BasePractiTest:
                         tests_to_execute.append(test_instance)
             else:
                 if page <= 2:
-                    logging.info("No instances in set. " + response.text)
+                    self.log("No instances in set. " + response.text)
                 break
                 # if page > 2:
-                #     logging.info("Finished getting tests from test set: '" + test_set_id['attributes']['name'] +
+                #     self.log("Finished getting tests from test set: '" + test_set_id['attributes']['name'] +
                 #           "' ID: " + str(test_set_id['attributes']['display-id']))
                 # else:
-                #     logging.info("No instances in set. " + response.text)
+                #     self.log("No instances in set. " + response.text)
                 # break
         return tests_to_execute
 
