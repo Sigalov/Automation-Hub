@@ -1,9 +1,6 @@
 import datetime
 import json
-import logging
-
 from rest_framework.decorators import api_view
-
 from connector.static.core.kms.kms_practitest import KmsPractiTest
 from .serializers import BlockSerializer
 import threading
@@ -14,6 +11,9 @@ from django.shortcuts import render, redirect
 from .models import Block
 from .static.core import static_methods
 
+def log_message_to_block(block, message):
+    from .models import LogEntry
+    LogEntry.objects.create(block=block, content=f"[{datetime.datetime.now()}] {message}")
 
 @csrf_exempt  # To exempt from CSRF checks for demonstration purposes
 def add_block(request):
@@ -27,13 +27,15 @@ def add_block(request):
 
 def list_blocks(request):
     blocks = Block.objects.all()
+    for block in blocks:
+        block.console_output = block.console_output.replace("\\n", "\n")
     return render(request, 'list_blocks.html', {'blocks': blocks})
 
 @csrf_exempt
 def start_block(request, block_id):
     block = Block.objects.get(id=block_id)
     block.status = "Starting..."
-    block.console_output += f"[{datetime.datetime.now()}] Block {block_id} started.\n"
+    log_message_to_block(block, f"Block {block_id} started.")
     block.save()
 
     # Fetching block parameters from the POST request
@@ -69,7 +71,7 @@ def start_block(request, block_id):
         instance = KmsPractiTest(more_data, block=block, **initial_data)
         instance.start_service()  # This line assumes the KmsPractiTest class has been imported and defined
     else:
-        block.console_output += f"[{datetime.datetime.now()}] Block {block_id} started.\n"
+        log_message_to_block(block, f"Block {block_id} started.")
         block.save()
 
     return JsonResponse({'status': 'starting...'})
@@ -79,8 +81,7 @@ def start_block(request, block_id):
 def stop_block(request, block_id):
     block = Block.objects.get(id=block_id)
     block.status = "Stopping..."
-    block.console_output += f"[{datetime.datetime.now()}] Block {block_id} stopped.\n"
-    block.save()
+    log_message_to_block(block, f"Block {block_id} stopped.\n")
 
     # Simulating some background process using threading
     threading.Thread(target=dummy_block_stop_service, args=(block,)).start()
@@ -148,7 +149,7 @@ def get_status(request, block_id):
 @csrf_exempt
 def delete_block(request, block_id):
     block = Block.objects.get(id=block_id)
-    block.console_output += f"[{datetime.datetime.now()}] Block {block_id} deleted.\n"
+    log_message_to_block(block, f"Block {block_id} deleted.")
     block.delete()
     return JsonResponse({'status': 'success'})
 
@@ -179,7 +180,9 @@ def vue_app(request):
 
 def get_console_output(request, block_id):
     block = Block.objects.get(pk=block_id)
-    return JsonResponse({'console_output': block.console_output})
+    logs = block.log_entries.order_by('-timestamp').values_list('content', flat=True)
+    return JsonResponse({'console_output': "\n".join(logs)})
+
 
 @api_view(['GET'])
 def block_list(request):
@@ -193,7 +196,7 @@ def log_to_block_console(block_id, message):
     """
     try:
         block = Block.objects.get(id=block_id)
-        block.console_output += f"[{datetime.datetime.now()}] {message}\n"
+        log_message_to_block(block, message)
         block.save()
     except Block.DoesNotExist:
         pass  # If the block does not exist, simply pass.

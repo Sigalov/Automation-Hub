@@ -13,8 +13,7 @@ class Block(models.Model):
     filter_id_list = models.TextField(blank=True, null=True)
     console_output = models.TextField(default="", blank=True)
 
-# class ServiceBlock(models.Model):
-#     console_output = models.TextField(default="", blank=True)
-#
-#     def __str__(self):
-#         return self.block_id
+class LogEntry(models.Model):
+    block = models.ForeignKey(Block, on_delete=models.CASCADE, related_name="log_entries")
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)

@@ -1,3 +1,4 @@
+import datetime
 import logging
 import time
 from enum import Enum
@@ -76,9 +77,12 @@ class BasePractiTest:
         N_A = 'N/A'
 
     def log(self, message):
+        timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S.%f]")
+        log_with_timestamp = f"{timestamp} {message}"
+
         # Update the block's console output if block is present
         if self.block:
-            self.block.console_output += message + "\n"
+            self.block.console_output = log_with_timestamp + "\\n" + self.block.console_output
             self.block.save()
 
     def create_tests_json(self, filter_test_sets):
@@ -230,6 +234,7 @@ class BasePractiTest:
         :return: True or False
         """
         if self.get_count_of_test_sets_under_filter(self.PRACTITEST_TRIGGER_FILTER_ID) > 0:
+            self.log("Testset/s found to execute")
             return True
         else:
             return False
@@ -238,6 +243,7 @@ class BasePractiTest:
         if debug:
             static_methods.write_dict_to_json_file(tests_to_execute, 'tests_to_execute.json')
             return
+        self.log('Going to push to SQS')
         sqs_pusher = SQSPusher(access_key=self.AWS_ACCESS_KEY, secret_key=self.AWS_SECRET_KEY)
         sqs_pusher.push_to_queue()
         return
