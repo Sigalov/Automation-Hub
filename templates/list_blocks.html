@@ -30,7 +30,6 @@
         {% for block in blocks %}
         <tr>
             <td>{{ block.id }}</td>
-{#            <td>{{ block.block_name }}</td>#}
             <td>{{ block.status }}</td>
             <td>
                 <div>App Name: <input type="text" name="app_name_{{ block.id }}" value="{{ block.app_name }}"><br>
@@ -40,7 +39,6 @@
                 AWS Secret Key: <input type="text" name="aws_secret_key_{{ block.id }}" value="{{ block.aws_secret_key }}"><br>
                 Filter ID List: <input type="text" name="filter_id_list_{{ block.id }}" value="{{ block.filter_id_list }}"><br>
                 </div><div>Console Output: <br><textarea id="console_output_{{ block.id }}" data-block-id="{{ block.id }}" class="console-output">{{ block.console_output }}</textarea></div>
-
                 <td>
                 <button onclick="startBlock('{{ block.id }}')">Start</button>
                 <button onclick="stopBlock('{{ block.id }}')">Stop</button><br><br>

@@ -24,17 +24,6 @@ def log_message_to_block(block, message):
     LogEntry.objects.create(block=block, content=f"[{datetime.datetime.now()}] {message}")
 
 
-@csrf_exempt
-def add_block(request):
-    if request.method == 'POST':
-        block_id = request.POST.get('block_id')
-        if block_id:
-            from .models import Block
-            Block.objects.create(block_id=block_id)
-            return redirect('list_blocks')
-    return render(request, 'add_block.html')
-
-
 def list_blocks(request):
     from .models import Block
     blocks = Block.objects.all()
@@ -69,7 +58,6 @@ def _run_service_indefinitely(data, block_id, initial_data):
             # Use print for now; you might replace it with a more appropriate logging mechanism
             print(f"Block {block_id} started.")
             break
-
 
 
 @csrf_exempt
@@ -133,17 +121,6 @@ def stop_block(request, block_id):
     return JsonResponse({"status": "STOPPED"})
 
 
-def get_status(request, block_id):
-    from .models import Block
-    block = Block.objects.filter(block_id=block_id).first()
-    if not block:
-        return JsonResponse({"message": "Block ID not found."}, status=404)
-
-    if block.running:
-        return JsonResponse({"status": "RUNNING"})
-    return JsonResponse({"status": "STOPPED"})
-
-
 @csrf_exempt
 def delete_block(request, block_id):
     from .models import Block
@@ -174,19 +151,8 @@ def create_block(request):
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid method"}, status=405)
 
-
-
-
-
 def vue_app(request):
     return render(request, 'index.html')
-
-
-def get_console_output(request, block_id):
-    from .models import Block
-    block = Block.objects.get(pk=block_id)
-    logs = block.log_entries.order_by('-timestamp').values_list('content', flat=True)
-    return JsonResponse({'console_output': "\n".join(logs)})
 
 
 @api_view(['GET'])
@@ -196,13 +162,3 @@ def block_list(request):
     blocks = Block.objects.all()
     serializer = BlockSerializer(blocks, many=True)
     return JsonResponse(serializer.data, safe=False)
-
-
-def log_to_block_console(block_id, message):
-    from .models import Block
-    try:
-        block = Block.objects.get(id=block_id)
-        log_message_to_block(block, message)
-        block.save()
-    except Block.DoesNotExist:
-        pass

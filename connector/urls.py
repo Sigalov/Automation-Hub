@@ -33,17 +33,12 @@ application = ProtocolTypeRouter({
 
 urlpatterns = [
     path('app/', views.vue_app, name='vue_app'),
-    path('api/blocks/', views.block_list, name='block-list'),
     path('admin/', admin.site.urls),
-    path('add_block/', views.add_block, name='add_block'),
     path('list_blocks/', views.list_blocks, name='list_blocks'),
-    path('get_status/<str:block_id>/', views.get_status, name='get_status'),
     path('start_block/<int:block_id>/', views.start_block, name='start_block'),
     path('stop_block/<int:block_id>/', views.stop_block, name='stop_block'),
     path('delete_block/<int:block_id>/', views.delete_block, name='delete_block'),
     path('create_block/', views.create_block, name='create_block'),
-    path('get_console_output/<int:block_id>/', views.get_console_output, name='get_console_output'),
-    # path("", TemplateView.as_view(template_name="index.html")),
     path('', views.list_blocks, name='list_blocks'),
     re_path(r'^.*$', views.vue_app, name='vue_app'),
 ]
