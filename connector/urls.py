@@ -37,8 +37,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('add_block/', views.add_block, name='add_block'),
     path('list_blocks/', views.list_blocks, name='list_blocks'),
-    path('start_service/<str:block_id>/', views.start_service, name='start_service'),
-    path('stop_service/<str:block_id>/', views.stop_service, name='stop_service'),
     path('get_status/<str:block_id>/', views.get_status, name='get_status'),
     path('start_block/<int:block_id>/', views.start_block, name='start_block'),
     path('stop_block/<int:block_id>/', views.stop_block, name='stop_block'),

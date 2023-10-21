@@ -29,9 +29,11 @@ class BasePractiTest:
                  practitest_debug=None,
                  execution_type=None,
                  sync_exec=None,
-                 block=None
+                 block=None,
+                 block_id=None,
                  ):
         self.block = block
+        self.block_id = block_id
         # PracitTest fields ID
         self.PRACTITEST_USER_NAME = pt_username
         self.PRACTITEST_TRIGGER_FILTER_ID_LIST = filter_id_list
@@ -77,13 +79,16 @@ class BasePractiTest:
         N_A = 'N/A'
 
     def log(self, message):
+        from connector.models import Block  # Import the Block model
+
         timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S.%f]")
         log_with_timestamp = f"{timestamp} {message}"
 
-        # Update the block's console output if block is present
-        if self.block:
-            self.block.console_output = log_with_timestamp + "\\n" + self.block.console_output
-            self.block.save()
+        # Update the block's console output if block_id is present
+        if self.block_id:
+            block = Block.objects.get(pk=self.block_id)  # Fetch the block using block_id
+            block.console_output = log_with_timestamp + "\\n" + block.console_output
+            block.save()
 
     def create_tests_json(self, filter_test_sets):
         tests_dict = [] #Contains all the tests to be executed (pushed to queue)
@@ -242,7 +247,9 @@ class BasePractiTest:
     def push_to_sqs(self, tests_to_execute, debug=True):
         if debug:
             timestamp = datetime.datetime.now().strftime('%Y-%m-%d%H%M%S')
-            static_methods.write_dict_to_json_file(tests_to_execute, f'{timestamp}_to_execute.json')
+            filename = f'{timestamp}_to_execute.json'
+            static_methods.write_dict_to_json_file(tests_to_execute, filename)
+            self.log(f'JSON file: "{filename}" created')
             return
         self.log('Going to push to SQS')
         sqs_pusher = SQSPusher(access_key=self.AWS_ACCESS_KEY, secret_key=self.AWS_SECRET_KEY)

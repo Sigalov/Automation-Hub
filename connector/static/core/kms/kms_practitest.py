@@ -4,8 +4,8 @@ from connector.static.core.static_methods import try_to_get_from_dict
 import logging
 
 class KmsPractiTest(BasePractiTest):
-    def __init__(self, more_data=None, block=None, *args, **kwargs):
-        super().__init__(block=block, *args, **kwargs)
+    def __init__(self, more_data=None, block_id=None, *args, **kwargs):
+        super().__init__(block_id=block_id, *args, **kwargs)
         # Additional initialization for KmsPractiTest
         self.ENVIRONMENT = more_data['environment']
         self.BROWSER = more_data['browser']
@@ -29,7 +29,7 @@ class KmsPractiTest(BasePractiTest):
         if super().is_to_trigger():
             tests_to_execute = self.trigger_execution()
             self.push_to_sqs(tests_to_execute)
-            self.log('DEBUG: Done')
+            # self.log('DEBUG: Done')
             sleep(10)
         else:
             self.log(f"no sets found under filter id")
