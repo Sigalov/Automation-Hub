@@ -241,7 +241,8 @@ class BasePractiTest:
 
     def push_to_sqs(self, tests_to_execute, debug=True):
         if debug:
-            static_methods.write_dict_to_json_file(tests_to_execute, 'tests_to_execute.json')
+            timestamp = datetime.datetime.now().strftime('%Y-%m-%d%H%M%S')
+            static_methods.write_dict_to_json_file(tests_to_execute, f'{timestamp}_to_execute.json')
             return
         self.log('Going to push to SQS')
         sqs_pusher = SQSPusher(access_key=self.AWS_ACCESS_KEY, secret_key=self.AWS_SECRET_KEY)

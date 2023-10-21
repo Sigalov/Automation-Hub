@@ -1,5 +1,6 @@
 
 
+
 {% load static %}
 <html>
 <head>
@@ -8,16 +9,6 @@
     <script src="{% static 'js/app.22210653.js' %}"></script>
 
 <style>
-    .logo-container {
-        text-align: left;
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-
-    .logo-container img {
-        width: 400px;
-        height: auto;
-    }
     .console-output {
         width: 500px;
         height: 300px;
@@ -26,7 +17,7 @@
 </head>
 <body>
 <div class="logo-container">
-    <img src="{% static 'header.png' %}" alt="Logo">
+    <img src="{% static 'header2.png' %}" alt="Logo">
 </div>
 
 <table>
@@ -46,13 +37,13 @@
 {#            <td>{{ block.block_name }}</td>#}
             <td>{{ block.status }}</td>
             <td>
-                App Name: <input type="text" name="app_name_{{ block.id }}" value="{{ block.app_name }}"><br>
+                <div>App Name: <input type="text" name="app_name_{{ block.id }}" value="{{ block.app_name }}"><br>
                 PT Username: <input type="text" name="pt_username_{{ block.id }}" value="{{ block.pt_username }}"><br>
                 PT Token: <input type="text" name="pt_token_{{ block.id }}" value="{{ block.pt_token }}"><br>
                 AWS Access Key: <input type="text" name="aws_access_key_{{ block.id }}" value="{{ block.aws_access_key }}"><br>
                 AWS Secret Key: <input type="text" name="aws_secret_key_{{ block.id }}" value="{{ block.aws_secret_key }}"><br>
                 Filter ID List: <input type="text" name="filter_id_list_{{ block.id }}" value="{{ block.filter_id_list }}"><br>
-                Console Output: <br><textarea id="console_output_{{ block.id }}" data-block-id="{{ block.id }}" class="console-output">{{ block.console_output }}</textarea><br>
+                </div><div>Console Output: <br><textarea id="console_output_{{ block.id }}" data-block-id="{{ block.id }}" class="console-output">{{ block.console_output }}</textarea></div>
 
                 <td>
                 <button onclick="startBlock('{{ block.id }}')">Start</button>

@@ -1,65 +1,141 @@
+
+/* General styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 20px;
+}
+
 /* General table styling */
 table {
     width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
+    border-collapse: separate;
+    border-spacing: 0 15px;
+    margin: 30px 0;
     font-size: 18px;
     text-align: left;
 }
 
 /* Table header styling */
-thead {
-    background-color: #f2f2f2;
+thead th {
+    background-color: #34495e;
+    color: white;
+    border-radius: 5px 5px 0 0;
 }
 
+/* Table cells */
 th, td {
-    padding: 10px;
+    padding: 15px;
     border-bottom: 1px solid #ddd;
 }
 
 /* Hover effect for table rows */
 tr:hover {
-    background-color: #f5f5f5;
+    background-color: #ecf0f1;
 }
 
 /* Alternate row colors */
-tr:nth-child(even) {
-    background-color: #f9f9f9;
+tr:nth-child(even) td {
+    background-color: #f7f9fb;
 }
 
-/* General button styling */
-button {
-    padding: 10px 15px;
-    border: none;
+tr:nth-child(odd) td {
+    background-color: #ffffff;
+}
+
+/* Adding shadow for rows */
+tr td {
     border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-    margin-right: 5px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Button styling */
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
     font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+    margin: 5px;
 }
 
 /* Hover effect for buttons */
 button:hover {
-    transform: scale(1.05);
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* Specific button color styles */
 button#createNewBlockBtn {
-    background-color: #3498db;
+    background-color: #2980b9;
     color: white;
 }
 
 button[onclick*="startBlock"] {
-    background-color: #2ecc71;
+    background-color: #27ae60;
     color: white;
 }
 
 button[onclick*="stopBlock"] {
-    background-color: #e74c3c;
+    background-color: #c0392b;
     color: white;
 }
 
 button[onclick*="deleteBlock"] {
     background-color: #7f8c8d;
     color: white;
+}
+
+/* Input styling */
+input[type="text"], textarea {
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus, textarea:focus {
+    border-color: #2980b9;
+}
+
+
+/* Button hover effect */
+button:hover {
+    transform: translateY(2px);
+    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Button active (pressed) effect */
+button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+/* Spacing for labels */
+table td > div > label {
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+/* Center aligning the logo */
+.logo-container {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    background: linear-gradient(to left, white, transparent 15%, transparent 85%, white);
+    padding: 10px 0;
+}
+
+/* Adjusting the logo image dimensions for natural fit */
+.logo-container img {
+    width: 400px;
+    height: auto;
+}
+
+/* Keeping previously defined styles for the textarea */
+.console-output {
+    width: 500px;
+    height: 300px;
 }
