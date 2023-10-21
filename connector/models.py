@@ -2,7 +2,7 @@ from django.db import models
 
 class Block(models.Model):
     block_id = models.CharField(max_length=255, unique=True)
-    status = models.CharField(max_length=255, default='STOPPED')
+    status = models.CharField(max_length=255, default='NOT RUNNING')
     is_running = models.BooleanField(default=False)
     output_data = models.TextField(default='')
     app_name = models.CharField(max_length=255, blank=True, null=True)

@@ -65,8 +65,8 @@ def start_block(request, block_id):
     block_id = int(block_id)
     from .models import Block
     block = Block.objects.get(id=block_id)
-    block.status = "Starting..."
     log_message_to_block(block, f"Block {block_id} started.")
+    block.status = "RUNNING"
     block.save()
 
     data = _fetch_and_save_block_data(request, block)
@@ -110,12 +110,13 @@ def stop_block(request, block_id):
     block_id = int(block_id)
     from .models import Block
     block = Block.objects.get(id=block_id)
-    block.status = "Stopping..."
+    block.status = "NOT RUNNING"
     log_message_to_block(block, f"Block {block_id} stopped.")
     block.save()
 
     if block.is_running:
         block.is_running = False
+        block.status = "NOT RUNNING"
         block.save()
 
     return JsonResponse({"status": "STOPPED"})
@@ -142,8 +143,7 @@ def create_block(request):
             else:
                 next_block_id = 1
             block_id_str = f"Block{next_block_id}"
-
-            block = Block(block_id=block_id_str, status="stopped", is_running=False)
+            block = Block(block_id=block_id_str, status="NOT RUNNING", is_running=False)
             block.save()
 
             return JsonResponse({"message": f"Block {block_id_str} created successfully!"}, status=201)
