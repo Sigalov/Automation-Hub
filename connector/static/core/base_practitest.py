@@ -246,7 +246,7 @@ class BasePractiTest:
 
     def push_to_sqs(self, tests_to_execute, debug=True):
         if debug:
-            timestamp = datetime.datetime.now().strftime('%Y-%m-%d%H%M%S')
+            timestamp = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
             filename = f'{timestamp}_to_execute.json'
             static_methods.write_dict_to_json_file(tests_to_execute, filename)
             self.log(f'JSON file: "{filename}" created')
