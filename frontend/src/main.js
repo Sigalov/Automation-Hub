@@ -1,8 +1,6 @@
-import { createApp } from 'vue';
-import App from './App.vue';
-import router from './router';
-import './appLogic'; // import the logic file
+import Vue from 'vue'
+import App from './App.vue'
 
-createApp(App)
-  .use(router)
-  .mount('#app');
+new Vue({
+  render: h => h(App),
+}).$mount('#app')
