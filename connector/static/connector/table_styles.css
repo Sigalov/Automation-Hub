@@ -1,141 +1,107 @@
-
-/* General styles */
-body {
-    font-family: 'Roboto', sans-serif;
-    margin: 20px;
-}
-
-/* General table styling */
 table {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 15px;
-    margin: 30px 0;
-    font-size: 18px;
-    text-align: left;
 }
 
-/* Table header styling */
-thead th {
-    background-color: #34495e;
-    color: white;
-    border-radius: 5px 5px 0 0;
+table td, table th {
+    border: 2px solid #ddd;
+    padding: 8px;
 }
 
-/* Table cells */
-th, td {
-    padding: 15px;
-    border-bottom: 1px solid #ddd;
+table tr:nth-child(even) {
+    background-color: #f2f2f2;
 }
 
-/* Hover effect for table rows */
-tr:hover {
-    background-color: #ecf0f1;
+table tr:hover {
+    background-color: #ddd;
 }
 
-/* Alternate row colors */
-tr:nth-child(even) td {
-    background-color: #f7f9fb;
-}
-
-tr:nth-child(odd) td {
-    background-color: #ffffff;
-}
-
-/* Adding shadow for rows */
-tr td {
-    border-radius: 5px;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
-}
-
-/* Button styling */
-button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 25px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
-    margin: 5px;
-}
-
-/* Hover effect for buttons */
-button:hover {
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* Specific button color styles */
-button#createNewBlockBtn {
-    background-color: #2980b9;
+table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    background-color: #04AA6D;
     color: white;
 }
-
-button[onclick*="startBlock"] {
-    background-color: #27ae60;
-    color: white;
+/* Target the header of the first column */
+table th:first-child {
+    width: 30px;
 }
 
-button[onclick*="stopBlock"] {
-    background-color: #c0392b;
-    color: white;
+/* Target the data cells of the first column */
+table td:first-child {
+    width: 30px;
 }
 
-button[onclick*="deleteBlock"] {
-    background-color: #7f8c8d;
-    color: white;
+/* Target the header of the first column */
+table th:nth-child(2) {
+    width: 115px;
 }
 
-/* Input styling */
-input[type="text"], textarea {
-    padding: 10px;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    width: 100%;
-    box-sizing: border-box;
-    transition: border-color 0.3s;
+/* Target the data cells of the first column */
+table td:nth-child(2) {
+    width: 115px;
 }
 
-input[type="text"]:focus, textarea:focus {
-    border-color: #2980b9;
-}
-
-
-/* Button hover effect */
-button:hover {
-    transform: translateY(2px);
-    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Button active (pressed) effect */
-button:active {
-    transform: translateY(4px);
-    box-shadow: none;
-}
-
-/* Spacing for labels */
-table td > div > label {
-    display: inline-block;
-    margin-bottom: 5px;
-}
-
-/* Center aligning the logo */
 .logo-container {
     text-align: center;
-    margin-top: 20px;
     margin-bottom: 20px;
-    background: linear-gradient(to left, white, transparent 15%, transparent 85%, white);
-    padding: 10px 0;
 }
 
-/* Adjusting the logo image dimensions for natural fit */
-.logo-container img {
-    width: 400px;
-    height: auto;
-}
-
-/* Keeping previously defined styles for the textarea */
 .console-output {
-    width: 700px;
-    height: 300px;
+    width: 100%;
+    height: 100px;
+}
+
+textarea {
+    width: 100%;
+    height: 100px;
+    border: 1px solid #ccc;
+    padding: 8px;
+    box-sizing: border-box;
+    resize: none;
+}
+
+input[type=text] {
+    width: 100%;
+    padding: 8px;
+    margin: 4px 0;
+    box-sizing: border-box;
+}
+.button-start, .button-stop, .button-delete {
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 12px;
+}
+
+.button-start {
+    background-color: #4CAF50;
+}
+
+.button-start:hover {
+    background-color: darkgreen;
+}
+
+.button-stop {
+    background-color: orange;
+}
+
+.button-stop:hover {
+    background-color: darkorange;
+}
+
+.button-delete {
+    background-color: red;
+}
+
+.button-delete:hover {
+    background-color: darkred;
 }

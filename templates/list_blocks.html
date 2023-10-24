@@ -3,13 +3,6 @@
 <head>
     <link rel="stylesheet" type="text/css" href="{% static 'connector/table_styles.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-    .console-output {
-        width: 500px;
-        height: 300px;
-    }
-</style>
 </head>
 <body>
 <div class="logo-container">
@@ -29,7 +22,7 @@
     <tbody>
         {% for block in blocks %}
         <tr>
-            <td>{{ block.id }}</td>
+            <td class="block-id">{{ block.id }}</td>
             <td>{{ block.status }}</td>
             <td>
                 <div>App Name: <input type="text" name="app_name_{{ block.id }}" value="{{ block.app_name }}"><br>
@@ -38,11 +31,13 @@
                 AWS Access Key: <input type="text" name="aws_access_key_{{ block.id }}" value="{{ block.aws_access_key }}"><br>
                 AWS Secret Key: <input type="text" name="aws_secret_key_{{ block.id }}" value="{{ block.aws_secret_key }}"><br>
                 Filter ID List: <input type="text" name="filter_id_list_{{ block.id }}" value="{{ block.filter_id_list }}"><br>
-                </div><div>Console Output: <br><textarea id="console_output_{{ block.id }}" data-block-id="{{ block.id }}" class="console-output">{{ block.console_output }}</textarea></div>
-                <td>
-                <button onclick="startBlock('{{ block.id }}')">Start</button>
-                <button onclick="stopBlock('{{ block.id }}')">Stop</button><br><br>
-                <button onclick="deleteBlock('{{ block.id }}')">Delete</button>
+                </div>
+                <div>Console Output: <br><textarea id="console_output_{{ block.id }}" data-block-id="{{ block.id }}" class="console-output">{{ block.console_output }}</textarea></div>
+            </td>
+            <td>
+                <button class="button-start" onclick="startBlock(event, '{{ block.id }}')">Start</button>
+                <button class="button-stop" onclick="stopBlock(event, '{{ block.id }}')">Stop</button>
+                <button class="button-delete" onclick="deleteBlock('{{ block.id }}')">Delete</button>
             </td>
         </tr>
         {% endfor %}
@@ -50,8 +45,37 @@
 </table>
 
 <script>
+function updateConsoleOutputs() {
+    // Loop through each block and fetch its console output
+    document.querySelectorAll('.block-id').forEach(blockElem => {
+        let blockId = blockElem.textContent.trim();
+        fetch(`/get_console_output/${blockId}/`)
+            .then(response => {
+                let contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    return response.json();
+                }
+                console.log("Received content type:", contentType);
+                throw new Error("Unexpected content type");
+            })
+            .then(data => {
+                if (data.console_output) {
+                    document.querySelector(`#console_output_${blockId}`).textContent = data.console_output;
+                }
+            })
+            .catch(error => {
+                console.log("There was a problem with the fetch operation:", error.message);
+            });
+    });
+}
 
-function startBlock(blockId) {
+
+
+// Call the function every 5 seconds
+setInterval(updateConsoleOutputs, 5000);
+
+function startBlock(event, blockId) {
+    event.preventDefault();
     console.log("Starting block with ID:", blockId);
     const data = {
         'app_name': document.querySelector(`input[name="app_name_${blockId}"]`).value,
@@ -69,10 +93,11 @@ function startBlock(blockId) {
         },
         body: JSON.stringify(data)
     })
-    .then(response => location.reload());
+    .then(response => updateConsoleOutputs());
 }
 
-function stopBlock(blockId) {
+function stopBlock(event, blockId) {
+    event.preventDefault();
     console.log("Stopping block with ID:", blockId);
     fetch(`/stop_block/${blockId}/`, {
         method: 'POST',
@@ -80,7 +105,7 @@ function stopBlock(blockId) {
             'X-CSRFToken': 'qW5YGsJ2yfGpKmleCMhytyscg8gce2Y5vRkgyqTFJrXQfW1QIbQxHD59PpCIQ546'
         },
     })
-    .then(response => location.reload());
+    .then(response =>  updateConsoleOutputs());
 }
 
 function deleteBlock(blockId) {

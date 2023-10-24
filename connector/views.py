@@ -162,3 +162,14 @@ def block_list(request):
     blocks = Block.objects.all()
     serializer = BlockSerializer(blocks, many=True)
     return JsonResponse(serializer.data, safe=False)
+
+def get_console_output(request, block_id):
+    from .models import Block
+    try:
+        block = Block.objects.get(pk=block_id)
+        logs = block.log_entries.order_by('-timestamp').values_list('content', flat=True)
+        return JsonResponse({'console_output': "\n".join(logs)})
+    except Block.DoesNotExist:
+        return JsonResponse({'error': 'Block not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': f"An error occurred: {str(e)}"}, status=500)

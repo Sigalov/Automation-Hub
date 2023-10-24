@@ -78,17 +78,17 @@ class BasePractiTest:
         NO_RUN = 'NO RUN'
         N_A = 'N/A'
 
-    def log(self, message):
-        from connector.models import Block  # Import the Block model
 
-        timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S.%f]")
+    def log(self, message):
+        from connector.models import Block, LogEntry  # Import the Block and LogEntry models
+        import datetime
+
+        timestamp = datetime.datetime.now()
         log_with_timestamp = f"{timestamp} {message}"
 
-        # Update the block's console output if block_id is present
         if self.block_id:
             block = Block.objects.get(pk=self.block_id)  # Fetch the block using block_id
-            block.console_output = log_with_timestamp + "\\n" + block.console_output
-            block.save()
+            LogEntry.objects.create(block=block, content=log_with_timestamp, timestamp=timestamp)
 
     def create_tests_json(self, filter_test_sets):
         tests_dict = [] #Contains all the tests to be executed (pushed to queue)
