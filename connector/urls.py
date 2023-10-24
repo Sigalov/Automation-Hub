@@ -34,6 +34,7 @@ application = ProtocolTypeRouter({
 urlpatterns = [
     path('app/', views.vue_app, name='vue_app'),
     path('get_console_output/<int:block_id>/', views.get_console_output, name='get_console_output'),
+    path('get_block_status/<int:block_id>/', views.get_block_status, name='get_block_status'),
     path('admin/', admin.site.urls),
     path('list_blocks/', views.list_blocks, name='list_blocks'),
     path('start_block/<int:block_id>/', views.start_block, name='start_block'),

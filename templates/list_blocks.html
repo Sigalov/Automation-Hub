@@ -16,14 +16,13 @@
             <th>Block ID</th>
             <th>Status</th>
             <th>Fields</th>
-            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         {% for block in blocks %}
         <tr>
             <td class="block-id">{{ block.id }}</td>
-            <td>{{ block.status }}</td>
+            <td id="status_{{ block.id }}">{{ block.status }}</td>
             <td>
                 <div>App Name: <input type="text" name="app_name_{{ block.id }}" value="{{ block.app_name }}"><br>
                 PT Username: <input type="text" name="pt_username_{{ block.id }}" value="{{ block.pt_username }}"><br>
@@ -33,8 +32,6 @@
                 Filter ID List: <input type="text" name="filter_id_list_{{ block.id }}" value="{{ block.filter_id_list }}"><br>
                 </div>
                 <div>Console Output: <br><textarea id="console_output_{{ block.id }}" data-block-id="{{ block.id }}" class="console-output">{{ block.console_output }}</textarea></div>
-            </td>
-            <td>
                 <button class="button-start" onclick="startBlock(event, '{{ block.id }}')">Start</button>
                 <button class="button-stop" onclick="stopBlock(event, '{{ block.id }}')">Stop</button>
                 <button class="button-delete" onclick="deleteBlock('{{ block.id }}')">Delete</button>
@@ -69,10 +66,27 @@ function updateConsoleOutputs() {
     });
 }
 
+function updateBlockStatuses() {
+    // Loop through each block and fetch its status
+    document.querySelectorAll('.block-id').forEach(blockElem => {
+        let blockId = blockElem.textContent.trim();
 
+        fetch(`/get_block_status/${blockId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status) {
+                    document.querySelector(`#status_${blockId}`).textContent = data.status;
+                }
+            })
+            .catch(error => {
+                console.log("There was a problem fetching the block status:", error.message);
+            });
+    });
+}
 
 // Call the function every 5 seconds
 setInterval(updateConsoleOutputs, 5000);
+setInterval(updateBlockStatuses, 5000);
 
 function startBlock(event, blockId) {
     event.preventDefault();
@@ -133,23 +147,13 @@ function getCookie(name) {
     return cookieValue;
 }
 
-function createBlock() {
-    fetch(`/create_block/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': 'qW5YGsJ2yfGpKmleCMhytyscg8gce2Y5vRkgyqTFJrXQfW1QIbQxHD59PpCIQ546'
-        },
-    })
-    .then(response => location.reload());
-}
-
 const csrfToken = getCookie('csrftoken');
 
 document.getElementById('createNewBlockBtn').addEventListener('click', function() {
     fetch('/create_block/', {
         method: 'POST',
         headers: {
-            'X-CSRFToken': 'qW5YGsJ2yfGpKmleCMhytyscg8gce2Y5vRkgyqTFJrXQfW1QIbQxHD59PpCIQ546'
+            'X-CSRFToken': csrfToken
         },
     }).then(function(response) {
         if (response.ok) {
