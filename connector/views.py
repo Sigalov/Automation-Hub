@@ -11,12 +11,13 @@ from .static.core import static_methods
 from multiprocessing import Process
 import os
 import django
+from django.db import transaction
 
 # Set up the Django settings module for new processes
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'connector.settings')
 
-block_processes = {}  # Dictionary to store processes by block_id
-block_flags = {}  # Dictionary to store continue_running flags by block_id
+block_processes = {}  # Dictionary to store processes by ID
+block_flags = {}  # Dictionary to store continue_running flags by ID
 
 
 def log_message_to_block(block, message):
@@ -136,20 +137,15 @@ def create_block(request):
     if request.method == "POST":
         try:
             from .models import Block
-            # Using the maximum block ID currently in use and incrementing it for the new block
-            max_block_id = Block.objects.all().aggregate(Max('block_id'))
-            if max_block_id['block_id__max'] is not None:
-                next_block_id = int(max_block_id['block_id__max'][5:]) + 1
-            else:
-                next_block_id = 1
-            block_id_str = f"Block{next_block_id}"
-            block = Block(block_id=block_id_str, status="NOT RUNNING", is_running=False)
-            block.save()
+            with transaction.atomic():
+                block = Block(status="NOT RUNNING", is_running=False)
+                block.save()
 
-            return JsonResponse({"message": f"Block {block_id_str} created successfully!"}, status=201)
+            return JsonResponse({"message": f"New block created successfully"}, status=201)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid method"}, status=405)
+
 
 def vue_app(request):
     return render(request, 'index.html')

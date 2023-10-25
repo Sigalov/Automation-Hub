@@ -84,7 +84,7 @@ class BasePractiTest:
         import datetime
 
         timestamp = datetime.datetime.now()
-        log_with_timestamp = f"{timestamp} {message}"
+        log_with_timestamp = f"[{timestamp}] {message}"
 
         if self.block_id:
             block = Block.objects.get(pk=self.block_id)  # Fetch the block using block_id

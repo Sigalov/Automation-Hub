@@ -3,7 +3,7 @@
         <h1>Blocks</h1>
         <ul>
             <li v-for="block in blocks" :key="block.id">
-                {{ block.block_id }} - {{ block.status }}
+                {{ block.id }} - {{ block.status }}
             </li>
         </ul>
     </div>
