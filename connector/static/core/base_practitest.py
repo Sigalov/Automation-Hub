@@ -12,13 +12,12 @@ class BasePractiTest:
     WAIT_EXPONENTIAL_MAX = 60000
 
     def __init__(self, pt_username,
-                 filter_id_list,
                  pt_token,
                  access_key,
                  secret_key,
                  project_name,
                  practitest_project_id,
-                 practitest_trigger_filter_id=None,
+                 practitest_trigger_filter_id_list=None,
                  practitest_execute_automated=None,
                  practitest_automation_run_only=None,
                  processed_field_id=None,
@@ -36,17 +35,16 @@ class BasePractiTest:
         self.block_id = block_id
         # PracitTest fields ID
         self.PRACTITEST_USER_NAME = pt_username
-        self.PRACTITEST_TRIGGER_FILTER_ID_LIST = filter_id_list
         self.PRACTITEST_API_TOKEN = pt_token
         self.AWS_ACCESS_KEY = access_key
         self.AWS_SECRET_KEY = secret_key
         self.PROJECT_NAME = project_name
         self.PRACTITEST_PROJECT_ID = practitest_project_id
+        self.PRACTITEST_TRIGGER_FILTER_ID_LIST = practitest_trigger_filter_id_list
         self.PRACTITEST_EXECUTE_AUTOMATED = practitest_execute_automated
         self.PRACTITEST_AUTOMATION_RUN_ONLY = practitest_automation_run_only
         self.PROCESSED_FIELD_ID = processed_field_id
         self.PROCESSED_FIELD_VALUE = processed_field_value
-        self.PRACTITEST_TRIGGER_FILTER_ID = practitest_trigger_filter_id
         self.PRACTITEST_AWS_INSTANCE_TYPE = practitest_aws_instance_type
         self.PRACTITEST_DEBUG = practitest_debug
         self.EXECUTION_TYPE = execution_type
@@ -93,7 +91,7 @@ class BasePractiTest:
     def create_tests_json(self, filter_test_sets):
         tests_dict = [] #Contains all the tests to be executed (pushed to queue)
         if not filter_test_sets:
-            self.log(f'Warning: No test set found under {self.PRACTITEST_TRIGGER_FILTER_ID} filter, but should be found')
+            self.log(f'Warning: No test set found under {self.PRACTITEST_TRIGGER_FILTER_ID_LIST} filter, but should be found')
             return
         for test_set in filter_test_sets:
             try:
@@ -238,8 +236,9 @@ class BasePractiTest:
         """Return True if there are test sets under specific filter (PRACTITEST_TRIGGER_FILTER_ID) from json
         :return: True or False
         """
-        if self.get_count_of_test_sets_under_filter(self.PRACTITEST_TRIGGER_FILTER_ID) > 0:
-            self.log("Testset/s found to execute")
+        test_set_count = self.get_count_of_test_sets_under_filter(self.PRACTITEST_TRIGGER_FILTER_ID_LIST)
+        if test_set_count > 0:
+            self.log(f"{test_set_count} Testset/s found to execute")
             return True
         else:
             return False

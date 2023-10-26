@@ -50,6 +50,9 @@ def _run_service_indefinitely(data, block_id, initial_data):
         if not block.is_running:
             break
 
+        if block.filter_id_list and not block.filter_id_list == 'None':
+            initial_data['practitest_trigger_filter_id_list'] = block.filter_id_list
+
         if data['app_name'] == 'kms':
             more_data = static_methods.load_data_from_json("connector/static/core/kms/optional.json")
             instance = KmsPractiTest(more_data, block_id=block_id, **initial_data)
@@ -102,7 +105,6 @@ def _load_initial_data(data):
     initial_data["pt_token"] = data['pt_token']
     initial_data["access_key"] = data['aws_access_key']
     initial_data["secret_key"] = data['aws_secret_key']
-    initial_data["filter_id_list"] = data['filter_id_list']
     return initial_data
 
 
