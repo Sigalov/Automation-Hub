@@ -1,119 +1,184 @@
-import threading
+import datetime
+import json
+from rest_framework.decorators import api_view
+from connector.static.core.kms.kms_practitest import KmsPractiTest
 import time
+from django.db.models import Max
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
-from .models import Block
+from .static.core import static_methods
+from multiprocessing import Process
+import os
+import django
+from django.db import transaction
 
-@csrf_exempt  # To exempt from CSRF checks for demonstration purposes
-def add_block(request):
-    if request.method == 'POST':
-        block_id = request.POST.get('block_id')
-        if block_id:
-            Block.objects.create(block_id=block_id)
-            return redirect('list_blocks')  # Redirect to the list view after adding
-    return render(request, 'add_block.html')  # Render the form for adding a block
+# Set up the Django settings module for new processes
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'connector.settings')
+
+block_processes = {}  # Dictionary to store processes by ID
+block_flags = {}  # Dictionary to store continue_running flags by ID
+
+
+def log_message_to_block(block, message):
+    from .models import LogEntry
+    LogEntry.objects.create(block=block, content=f"[{datetime.datetime.now()}] {message}")
+
 
 def list_blocks(request):
+    from .models import Block
     blocks = Block.objects.all()
+    for block in blocks:
+        block.console_output = block.console_output.replace("\\n", "\n")
     return render(request, 'list_blocks.html', {'blocks': blocks})
+
+
+@csrf_exempt
+def _run_service_indefinitely(data, block_id, initial_data):
+    # Set up Django
+    django.setup()
+    # Close existing database connections
+    from django import db
+    db.connections.close_all()
+    # Now, you can safely import your models and use Django functionalities
+    from .models import Block
+    block_id = int(block_id)
+
+    while True:
+        # Fetch the block object inside the loop
+        block = Block.objects.get(id=block_id)
+        if not block.is_running:
+            break
+
+        if block.filter_id_list and not block.filter_id_list == 'None':
+            initial_data['practitest_trigger_filter_id_list'] = block.filter_id_list
+
+        if data['app_name'] == 'kms':
+            more_data = static_methods.load_data_from_json("connector/static/core/kms/optional.json")
+            instance = KmsPractiTest(more_data, block_id=block_id, **initial_data)
+            instance.start_service()
+            time.sleep(10)
+        else:
+            # Use print for now; you might replace it with a more appropriate logging mechanism
+            print(f"Block {block_id} started.")
+            break
+
 
 @csrf_exempt
 def start_block(request, block_id):
+    block_id = int(block_id)
+    from .models import Block
     block = Block.objects.get(id=block_id)
-    block.status = "Starting..."
+    log_message_to_block(block, f"Block {block_id} started.")
+    block.status = "RUNNING"
     block.save()
 
-    # Simulating some background process using threading
-    threading.Thread(target=dummy_block_start_service, args=(block,)).start()
-    return JsonResponse({'status': 'starting'})
+    data = _fetch_and_save_block_data(request, block)
+    initial_data = _load_initial_data(data)
+
+    block.is_running = True
+    block.save()
+
+    process = Process(target=_run_service_indefinitely, args=(data, block_id, initial_data))
+    process.start()
+    block_processes[block_id] = process
+
+    return JsonResponse({'status': 'starting...'})
+
+
+def _fetch_and_save_block_data(request, block):
+    data = json.loads(request.body)
+    block.app_name = data['app_name']
+    block.pt_username = data['pt_username']
+    block.pt_token = data['pt_token']
+    block.aws_access_key = data['aws_access_key']
+    block.aws_secret_key = data['aws_secret_key']
+    block.filter_id_list = data['filter_id_list']
+    block.save()
+    return data
+
+
+def _load_initial_data(data):
+    initial_data = static_methods.load_data_from_json("connector/static/core/initialize.json")
+    initial_data["project_name"] = data['app_name']
+    initial_data["pt_username"] = data['pt_username']
+    initial_data["pt_token"] = data['pt_token']
+    initial_data["access_key"] = data['aws_access_key']
+    initial_data["secret_key"] = data['aws_secret_key']
+    return initial_data
+
 
 @csrf_exempt
 def stop_block(request, block_id):
+    block_id = int(block_id)
+    from .models import Block
     block = Block.objects.get(id=block_id)
-    block.status = "Stopping..."
+    block.status = "NOT RUNNING"
+    log_message_to_block(block, f"Block {block_id} stopped.")
     block.save()
 
-    # Simulating some background process using threading
-    threading.Thread(target=dummy_block_stop_service, args=(block,)).start()
-    return JsonResponse({'status': 'stopping'})
+    if block.is_running:
+        block.is_running = False
+        block.status = "NOT RUNNING"
+        block.save()
 
-# Simulating service logic for demonstration purposes
-def dummy_block_start_service(block):
-    time.sleep(5)  # Simulating some process that takes 5 seconds
-    block.status = "Started"
-    block.save()
-
-def dummy_block_stop_service(block):
-    time.sleep(5)  # Simulating some process that takes 5 seconds
-    block.status = "Stopped"
-    block.save()
-
-# Integrate the starting logic into the start_service view
-def start_service(request, block_id):
-    block = Block.objects.filter(block_id=block_id).first()
-    if not block:
-        return JsonResponse({"message": "Block ID not found."}, status=404)
-
-    block.status = "RUNNING"
-    block.running = True
-    block.save()
-
-    # Use threading to simulate the service running in the background
-    t = threading.Thread(target=dummy_block_start_service, args=(block,))
-    t.start()
-
-    return JsonResponse({"message": f"Service started for {block_id}"})
-
-
-# Integrate the stopping logic into the stop_service view
-def stop_service(request, block_id):
-    block = Block.objects.filter(block_id=block_id).first()
-    if not block:
-        return JsonResponse({"message": "Block ID not found."}, status=404)
-
-    block.running = False
-    block.save()
-
-    # The actual logic to stop the service would be here
-    # In this dummy example, we just set the running attribute to False and wait for the thread to finish
-
-    block.status = "STOPPED"
-    block.save()
-
-    return JsonResponse({"message": f"Service stopped for {block_id}"})
-
-def get_status(request, block_id):
-    block = Block.objects.filter(block_id=block_id).first()
-    if not block:
-        return JsonResponse({"message": "Block ID not found."}, status=404)
-
-    if block.running:
-        return JsonResponse({"status": "RUNNING"})
     return JsonResponse({"status": "STOPPED"})
+
 
 @csrf_exempt
 def delete_block(request, block_id):
+    from .models import Block
     block = Block.objects.get(id=block_id)
+    log_message_to_block(block, f"Block {block_id} deleted.")
     block.delete()
-    return JsonResponse({'status': 'deleted'})
+    return JsonResponse({'status': 'success'})
+
 
 @csrf_exempt
 def create_block(request):
     if request.method == "POST":
         try:
-            # Get the current count of blocks and add one for the new block's ID
-            current_count = Block.objects.count()
-            block_id = f"Block{current_count + 1}"
+            from .models import Block
+            with transaction.atomic():
+                block = Block(status="NOT RUNNING", is_running=False)
+                block.save()
 
-            # Check if block with this ID already exists (just to be extra safe)
-            while Block.objects.filter(block_id=block_id).exists():
-                current_count += 1
-                block_id = f"Block{current_count + 1}"
-
-            block = Block(block_id=block_id, status="stopped")
-            block.save()
-            return JsonResponse({"message": f"Block {block_id} created successfully!"}, status=201)
+            return JsonResponse({"message": f"New block created successfully"}, status=201)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid method"}, status=405)
+
+
+def vue_app(request):
+    return render(request, 'index.html')
+
+
+@api_view(['GET'])
+def block_list(request):
+    from .serializers import BlockSerializer
+    from .models import Block
+    blocks = Block.objects.all()
+    serializer = BlockSerializer(blocks, many=True)
+    return JsonResponse(serializer.data, safe=False)
+
+def get_console_output(request, block_id):
+    from .models import Block
+    try:
+        block = Block.objects.get(pk=block_id)
+        logs = block.log_entries.order_by('-timestamp').values_list('content', flat=True)
+        return JsonResponse({'console_output': "\n".join(logs)})
+    except Block.DoesNotExist:
+        return JsonResponse({'error': 'Block not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': f"An error occurred: {str(e)}"}, status=500)
+
+
+def get_block_status(request, block_id):
+    from .models import Block
+    try:
+        block = Block.objects.get(pk=block_id)
+        return JsonResponse({'status': block.status})
+    except Block.DoesNotExist:
+        return JsonResponse({'error': 'Block not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': f"An error occurred: {str(e)}"}, status=500)

@@ -1,0 +1,36 @@
+Folder PATH listing for volume Windows
+Volume serial number is F64A-A5C7
+C:.
+ª   directory_structure.txt
+ª   header.png
+ª   header2.png
+ª   __init__.py
+ª   
++---connector
+ª       table_styles.css
+ª       
++---core
+ª   ª   aws_sqs_pusher.py
+ª   ª   base_practitest.py
+ª   ª   initialize.json
+ª   ª   static_methods.py
+ª   ª   __init__.py
+ª   ª   
+ª   +---kms
+ª   ª   ª   kms_practitest.py
+ª   ª   ª   optional.json
+ª   ª   ª   __init__.py
+ª   ª   ª   
+ª   ª   +---__pycache__
+ª   ª           kms_practitest.cpython-310.pyc
+ª   ª           __init__.cpython-310.pyc
+ª   ª           
+ª   +---__pycache__
+ª           aws_sqs_pusher.cpython-310.pyc
+ª           base_practitest.cpython-310.pyc
+ª           static_methods.cpython-310.pyc
+ª           __init__.cpython-310.pyc
+ª           
++---__pycache__
+        __init__.cpython-310.pyc
+        

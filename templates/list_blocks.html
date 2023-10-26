@@ -1,22 +1,40 @@
+{% load static %}
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'connector/table_styles.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<div class="logo-container">
+    <img src="{% static 'header2.png' %}" alt="Logo">
+</div>
+
 <table>
     <thead>
         <button id="createNewBlockBtn">Create New Block</button>
         <tr>
             <th>Block ID</th>
             <th>Status</th>
-            <th>Actions</th>
+            <th>Fields</th>
         </tr>
     </thead>
     <tbody>
         {% for block in blocks %}
         <tr>
-            <td>{{ block.id }}</td>
-            <td>{{ block.block_name }}</td>
-            <td>{{ block.status }}</td>
+            <td class="block-id">{{ block.id }}</td>
+            <td id="status_{{ block.id }}">{{ block.status }}</td>
             <td>
-                <button onclick="startBlock('{{ block.id }}')">Start</button>
-                <button onclick="stopBlock('{{ block.id }}')">Stop</button>
-                <button onclick="deleteBlock('{{ block.id }}')">Delete</button>
+                <div>App Name: <input type="text" name="app_name_{{ block.id }}" value="{{ block.app_name }}"><br>
+                PT Username: <input type="text" name="pt_username_{{ block.id }}" value="{{ block.pt_username }}"><br>
+                PT Token: <input type="text" name="pt_token_{{ block.id }}" value="{{ block.pt_token }}"><br>
+                AWS Access Key: <input type="text" name="aws_access_key_{{ block.id }}" value="{{ block.aws_access_key }}"><br>
+                AWS Secret Key: <input type="text" name="aws_secret_key_{{ block.id }}" value="{{ block.aws_secret_key }}"><br>
+                Filter ID List: <input type="text" name="filter_id_list_{{ block.id }}" value="{{ block.filter_id_list }}"><br>
+                </div>
+                <div>Console Output: <br><textarea id="console_output_{{ block.id }}" data-block-id="{{ block.id }}" class="console-output">{{ block.console_output }}</textarea></div>
+                <button class="button-start" onclick="startBlock(event, '{{ block.id }}')">Start</button>
+                <button class="button-stop" onclick="stopBlock(event, '{{ block.id }}')">Stop</button>
+                <button class="button-delete" onclick="deleteBlock('{{ block.id }}')">Delete</button>
             </td>
         </tr>
         {% endfor %}
@@ -24,74 +42,126 @@
 </table>
 
 <script>
-    function startBlock(blockId) {
-        console.log("Starting block with ID:", blockId);
-        fetch(`/start_block/${blockId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-        })
-        .then(response => location.reload());
-    }
-
-    function stopBlock(blockId) {
-        console.log("Stopping block with ID:", blockId);
-        fetch(`/stop_block/${blockId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-        })
-        .then(response => location.reload());
-    }
-    function deleteBlock(blockId) {
-        fetch(`/delete_block/${blockId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-        })
-        .then(response => location.reload());
-    }
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+function updateConsoleOutputs() {
+    // Loop through each block and fetch its console output
+    document.querySelectorAll('.block-id').forEach(blockElem => {
+        let blockId = blockElem.textContent.trim();
+        fetch(`/get_console_output/${blockId}/`)
+            .then(response => {
+                let contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    return response.json();
                 }
+                console.log("Received content type:", contentType);
+                throw new Error("Unexpected content type");
+            })
+            .then(data => {
+                if (data.console_output) {
+                    document.querySelector(`#console_output_${blockId}`).textContent = data.console_output;
+                }
+            })
+            .catch(error => {
+                console.log("There was a problem with the fetch operation:", error.message);
+            });
+    });
+}
+
+function updateBlockStatuses() {
+    // Loop through each block and fetch its status
+    document.querySelectorAll('.block-id').forEach(blockElem => {
+        let blockId = blockElem.textContent.trim();
+
+        fetch(`/get_block_status/${blockId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status) {
+                    document.querySelector(`#status_${blockId}`).textContent = data.status;
+                }
+            })
+            .catch(error => {
+                console.log("There was a problem fetching the block status:", error.message);
+            });
+    });
+}
+
+// Call the function every 5 seconds
+setInterval(updateConsoleOutputs, 5000);
+setInterval(updateBlockStatuses, 5000);
+
+function startBlock(event, blockId) {
+    event.preventDefault();
+    console.log("Starting block with ID:", blockId);
+    const data = {
+        'app_name': document.querySelector(`input[name="app_name_${blockId}"]`).value,
+        'pt_username': document.querySelector(`input[name="pt_username_${blockId}"]`).value,
+        'pt_token': document.querySelector(`input[name="pt_token_${blockId}"]`).value,
+        'aws_access_key': document.querySelector(`input[name="aws_access_key_${blockId}"]`).value,
+        'aws_secret_key': document.querySelector(`input[name="aws_secret_key_${blockId}"]`).value,
+        'filter_id_list': document.querySelector(`input[name="filter_id_list_${blockId}"]`).value
+    };
+    fetch(`/start_block/${blockId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => updateConsoleOutputs());
+}
+
+function stopBlock(event, blockId) {
+    event.preventDefault();
+    console.log("Stopping block with ID:", blockId);
+    fetch(`/stop_block/${blockId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': 'qW5YGsJ2yfGpKmleCMhytyscg8gce2Y5vRkgyqTFJrXQfW1QIbQxHD59PpCIQ546'
+        },
+    })
+    .then(response =>  updateConsoleOutputs());
+}
+
+function deleteBlock(blockId) {
+    fetch(`/delete_block/${blockId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': 'qW5YGsJ2yfGpKmleCMhytyscg8gce2Y5vRkgyqTFJrXQfW1QIbQxHD59PpCIQ546'
+        },
+    })
+    .then(response => location.reload());
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
         }
-        return cookieValue;
     }
-    function createBlock() {
-        fetch(`/create_block/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-        })
-        .then(response => location.reload());
-    }
+    return cookieValue;
+}
 
-    const csrfToken = getCookie('csrftoken');
+const csrfToken = getCookie('csrftoken');
 
-    document.getElementById('createNewBlockBtn').addEventListener('click', function() {
-        fetch('/create_block/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-        }).then(function(response) {
-            if (response.ok) {
-                location.reload(); // Refresh the page to show the new block
-            } else {
-                console.error('Failed to create a new block.');
-            }
-        });
+document.getElementById('createNewBlockBtn').addEventListener('click', function() {
+    fetch('/create_block/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+    }).then(function(response) {
+        if (response.ok) {
+            location.reload(); // Refresh the page to show the new block
+        } else {
+            console.error('Failed to create a new block.');
+        }
     });
+});
+
 </script>
