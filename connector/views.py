@@ -3,7 +3,6 @@ import json
 from rest_framework.decorators import api_view
 from connector.static.core.kms.kms_practitest import KmsPractiTest
 import time
-from django.db.models import Max
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
@@ -15,10 +14,7 @@ from django.db import transaction
 
 # Set up the Django settings module for new processes
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'connector.settings')
-
 block_processes = {}  # Dictionary to store processes by ID
-block_flags = {}  # Dictionary to store continue_running flags by ID
-
 
 def log_message_to_block(block, message):
     from .models import LogEntry
@@ -59,8 +55,8 @@ def _run_service_indefinitely(data, block_id, initial_data):
             instance.start_service()
             time.sleep(10)
         else:
-            # Use print for now; you might replace it with a more appropriate logging mechanism
-            print(f"Block {block_id} started.")
+            log_message_to_block(block, f"Unknown Application Name: {data['app_name']}.")
+            set_block_status_not_running(block)
             break
 
 
@@ -69,21 +65,30 @@ def start_block(request, block_id):
     block_id = int(block_id)
     from .models import Block
     block = Block.objects.get(id=block_id)
-    log_message_to_block(block, f"Block {block_id} started.")
-    block.status = "RUNNING"
-    block.save()
+    log_message_to_block(block, f"Starting Service...")
 
     data = _fetch_and_save_block_data(request, block)
     initial_data = _load_initial_data(data)
 
-    block.is_running = True
-    block.save()
-
+    set_block_status_running(block)
     process = Process(target=_run_service_indefinitely, args=(data, block_id, initial_data))
     process.start()
     block_processes[block_id] = process
 
     return JsonResponse({'status': 'starting...'})
+
+
+def set_block_status_running(block):
+    block.status = "RUNNING"
+    block.is_running = True
+    block.save()
+
+
+def set_block_status_not_running(block):
+    block.status = "NOT RUNNING"
+    block.is_running = False
+    block.save()
+    log_message_to_block(block, f'Service Stopped')
 
 
 def _fetch_and_save_block_data(request, block):
@@ -114,13 +119,10 @@ def stop_block(request, block_id):
     from .models import Block
     block = Block.objects.get(id=block_id)
     block.status = "NOT RUNNING"
-    log_message_to_block(block, f"Block {block_id} stopped.")
     block.save()
 
     if block.is_running:
-        block.is_running = False
-        block.status = "NOT RUNNING"
-        block.save()
+        set_block_status_not_running(block)
 
     return JsonResponse({"status": "STOPPED"})
 
@@ -129,7 +131,7 @@ def stop_block(request, block_id):
 def delete_block(request, block_id):
     from .models import Block
     block = Block.objects.get(id=block_id)
-    log_message_to_block(block, f"Block {block_id} deleted.")
+    log_message_to_block(block, f"Service {block_id} deleted.")
     block.delete()
     return JsonResponse({'status': 'success'})
 
@@ -143,7 +145,7 @@ def create_block(request):
                 block = Block(status="NOT RUNNING", is_running=False)
                 block.save()
 
-            return JsonResponse({"message": f"New block created successfully"}, status=201)
+            return JsonResponse({"message": f"New service created successfully"}, status=201)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid method"}, status=405)
