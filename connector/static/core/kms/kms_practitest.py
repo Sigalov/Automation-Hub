@@ -37,7 +37,8 @@ class KmsPractiTest(BasePractiTest):
     def trigger_execution(self):
         try:
             self.log(f"Execution Triggered")
-            filter_test_sets = self.get_all_testsets_under_specific_filter_id(self.PRACTITEST_TRIGGER_FILTER_ID_LIST)  # TODO make multiple filter - list
+            filter_test_sets = self.get_all_testsets_under_filter(self.PRACTITEST_TRIGGER_FILTER_ID_LIST)
+
             initial_tests_list = super().create_tests_json(filter_test_sets)
             if not initial_tests_list:
                 raise

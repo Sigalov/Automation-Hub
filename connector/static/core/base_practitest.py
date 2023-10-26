@@ -219,6 +219,17 @@ class BasePractiTest:
                 # break
         return tests_to_execute
 
+    def get_all_testsets_under_filter(self, filter_id:str):
+        filter_id_list = filter_id.split(',')
+        return self.get_all_testsets_under_filter_id_list(filter_id_list)
+
+
+    def get_all_testsets_under_filter_id_list(self, filter_id_list):
+        testsets_list_of_dict = []
+        for filter_id in filter_id_list:
+            testsets_list_of_dict = testsets_list_of_dict + self.get_all_testsets_under_specific_filter_id(filter_id)
+        return testsets_list_of_dict
+
     def get_all_testsets_under_specific_filter_id(self, filter_id):
         """Return all test sets under specific filter id
         :param filter_id: filter id as int ot string
@@ -230,7 +241,11 @@ class BasePractiTest:
         return static_methods.get_dict_data_if_not_empty(json.loads(response.text))
 
     def get_count_of_test_sets_under_filter(self, filter_id):
-        return static_methods.safe_len(self.get_all_testsets_under_specific_filter_id(filter_id))
+        filter_id_list = filter_id.split(',')
+        count = 0
+        for filter_id in filter_id_list:
+            count = count + static_methods.safe_len(self.get_all_testsets_under_specific_filter_id(filter_id))
+        return count
 
     def is_to_trigger(self):
         """Return True if there are test sets under specific filter (PRACTITEST_TRIGGER_FILTER_ID) from json
