@@ -1,7 +1,6 @@
 from time import sleep
 from connector.static.core.base_practitest import BasePractiTest
 from connector.static.core.static_methods import try_to_get_from_dict
-import logging
 
 class KmsPractiTest(BasePractiTest):
     def __init__(self, more_data=None, block_id=None, *args, **kwargs):
@@ -38,7 +37,6 @@ class KmsPractiTest(BasePractiTest):
         try:
             self.log(f"Execution Triggered")
             filter_test_sets = self.get_all_testsets_under_filter(self.PRACTITEST_TRIGGER_FILTER_ID_LIST)
-
             initial_tests_list = super().create_tests_json(filter_test_sets)
             if not initial_tests_list:
                 raise
@@ -46,7 +44,7 @@ class KmsPractiTest(BasePractiTest):
                 try:
                     test_set_attributes = test_set['attributes']
                     test_set_custom_fields = test_set['attributes']['custom-fields']
-                    tests = self.get_list_of_tests_by_status(test_set, 'all')
+                    tests = self.get_list_of_tests_by_status(test_set, test_set_custom_fields[self.PRACTITEST_AUTOMATION_RUN_ONLY])
                     for test in tests:
                         test_attributes = test['attributes']
                         test_custom_fields = test['attributes']['custom-fields']

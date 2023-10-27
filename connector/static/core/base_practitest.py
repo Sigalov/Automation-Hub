@@ -96,7 +96,7 @@ class BasePractiTest:
             try:
                 test_set_attributes = test_set['attributes']
                 test_set_custom_fields = test_set['attributes']['custom-fields']
-                tests = self.get_list_of_tests_by_status(test_set, 'all')
+                tests = self.get_list_of_tests_by_status(test_set, test_set_custom_fields[self.PRACTITEST_AUTOMATION_RUN_ONLY])
                 for test in tests:
                     test_dict = {}
                     test_attributes = test['attributes']
@@ -231,7 +231,7 @@ class BasePractiTest:
 
     def get_all_testsets_under_specific_filter_id(self, filter_id):
         """Return all test sets under specific filter id
-        :param filter_id: filter id as int ot string
+        :param filter_id: int or string
         :return: dictionary
         """
         url = self.SETS_URI + "&filter-id=" + str(filter_id)
@@ -239,7 +239,7 @@ class BasePractiTest:
                                              f'Bad response for get_all_testsets_under_specific_filter_id; Going to retry')
         return static_methods.get_dict_data_if_not_empty(json.loads(response.text))
 
-    def get_count_of_test_sets_under_filter(self, filter_id):
+    def get_count_of_test_sets_under_filter(self, filter_id):#TODO add case: return only filters where there something to execute
         filter_id_list = filter_id.split(',')
         count = 0
         for filter_id in filter_id_list:
