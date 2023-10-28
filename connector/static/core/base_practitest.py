@@ -87,39 +87,74 @@ class BasePractiTest:
             block = Block.objects.get(pk=self.block_id)  # Fetch the block using block_id
             LogEntry.objects.create(block=block, content=log_with_timestamp, timestamp=timestamp)
 
-    def create_tests_json(self, filter_test_sets):
-        tests_dict = [] #Contains all the tests to be executed (pushed to queue)
-        if not filter_test_sets:
+
+    def get_dict_of_tests_objects(self, filter_test_sets_list):
+        """
+        Fetches a list of tests based on their status from the test set labeled as "Automation Run Only"
+        and returns this list along with a list of Practitest test objects.
+
+        Parameters:
+        - filter_test_sets (list): A list of test sets to filter from.
+
+        Returns:
+        - list: A list of dictionaries where each dictionary represents a test containing:
+            - project_name (str): Name of the project.
+            - test_id (str): Display ID of the test.
+            - test_instance (str): Unique ID representing the test instance.
+            - test_name (str): Name of the test.
+            - test_set_id (str): Display ID of the test set.
+            - test_set_name (str): Name of the test set.
+            - project_pt_id (str): Project ID from Practitest.
+            - execution_session_id (str): Timestamp indicating the current execution session.
+            - automation_run_only (str): Indicates if the test is for automation run only.
+            - aws_instance_type (str): Specifies the AWS instance type.
+            - debug (bool): Indicates if the test is in debug mode.
+            - execution_type (str): Type of execution for the test.
+            - sync_exec (bool): Indicates if the execution is synchronous.
+
+        - list: A list of Practitest test objects.
+
+        Raises:
+        - Exception: If there's an error parsing the test set or test attributes.
+
+        Notes:
+        - If no test set is found under the specified filter, a warning will be logged.
+        """
+        initial_tests_list = [] #Contains all the tests to be executed (pushed to queue)
+        if not filter_test_sets_list:
             self.log(f'Warning: No test set found under {self.PRACTITEST_TRIGGER_FILTER_ID_LIST} filter, but should be found')
             return
-        for test_set in filter_test_sets:
-            try:
+
+        filter_test_sets_dict = self.convert_test_set_obj_list_to_dict_set_id_as_key(filter_test_sets_list)
+        tests = self.get_list_of_tests_by_status(filter_test_sets_dict)
+        try:
+            for test in tests:
+                test_set = filter_test_sets_dict[str(test['attributes']['set-id'])]
                 test_set_attributes = test_set['attributes']
-                test_set_custom_fields = test_set['attributes']['custom-fields']
-                tests = self.get_list_of_tests_by_status(test_set, test_set_custom_fields[self.PRACTITEST_AUTOMATION_RUN_ONLY])
-                for test in tests:
-                    test_dict = {}
-                    test_attributes = test['attributes']
-                    test_custom_fields = test['attributes']['custom-fields']
-                    test_dict['project_name'] = self.PROJECT_NAME
-                    test_dict['test_id'] = str(test_attributes['test-display-id'])
-                    test_dict['test_instance'] = str(test['id']) #Unique test instance id, reporting back to PractiTest
-                    test_dict['test_name'] = str(test_attributes['name']).replace("'", "").replace('"', '').replace(',', '')\
-                        .replace('(', '').replace(')', '').replace('<', '').replace('>', '').replace('!', '').replace('@', '')\
-                        .replace('#', '').replace('*', '')
-                    test_dict['test_set_id'] = str(test_set_attributes['display-id'])
-                    test_dict['test_set_name'] = str(test_set_attributes['name'])
-                    test_dict['project_pt_id'] = str(test_attributes['project-id'])
-                    test_dict['execution_session_id'] = str(time.time()).replace(".","") #Timestamp for current execution, relevant for sync execution
-                    test_dict['automation_run_only'] = str(test_set_custom_fields[self.PRACTITEST_AUTOMATION_RUN_ONLY])
-                    test_dict['aws_instance_type'] = str(test_set_custom_fields[self.PRACTITEST_AWS_INSTANCE_TYPE])
-                    test_dict['debug'] = self.get_prioritized_value(self.PRACTITEST_DEBUG, test_set, test, is_boolean=True)
-                    test_dict['execution_type'] = str(self.EXECUTION_TYPE)
-                    test_dict['sync_exec'] = static_methods.try_to_get_from_dict(test_set_custom_fields, self.SYNCHRONOUS_EXECUTION, is_boolean=True)
-                    tests_dict.append(test_dict)
-            except:
-                self.log(f'Error: failed to parse test set/ test attributes')
-        return tests_dict
+                test_set_custom_fields = test_set_attributes['custom-fields']
+                test_dict = {}
+                test_attributes = test['attributes']
+                test_custom_fields = test['attributes']['custom-fields']
+                test_dict['project_name'] = self.PROJECT_NAME
+                test_dict['test_id'] = str(test_attributes['test-display-id'])
+                test_dict['test_instance'] = str(test['id']) #Unique test instance id, reporting back to PractiTest
+                test_dict['test_name'] = str(test_attributes['name']).replace("'", "").replace('"', '').replace(',', '')\
+                    .replace('(', '').replace(')', '').replace('<', '').replace('>', '').replace('!', '').replace('@', '')\
+                    .replace('#', '').replace('*', '')
+                test_dict['test_set_id'] = str(test_set_attributes['display-id'])
+                test_dict['test_set_name'] = str(test_set_attributes['name'])
+                test_dict['project_pt_id'] = str(test_attributes['project-id'])
+                test_dict['execution_session_id'] = str(time.time()).replace(".","") #Timestamp for current execution, relevant for sync execution
+                test_dict['automation_run_only'] = str(test_set_custom_fields[self.PRACTITEST_AUTOMATION_RUN_ONLY])
+                test_dict['aws_instance_type'] = str(test_set_custom_fields[self.PRACTITEST_AWS_INSTANCE_TYPE])
+                test_dict['debug'] = self.get_prioritized_value(self.PRACTITEST_DEBUG, test_set, test, is_boolean=True)
+                test_dict['execution_type'] = str(self.EXECUTION_TYPE)
+                test_dict['sync_exec'] = static_methods.try_to_get_from_dict(test_set_custom_fields, self.SYNCHRONOUS_EXECUTION, is_boolean=True)
+                initial_tests_list.append(test_dict)
+        except:
+            self.log(f'Error: failed to parse test set/ test attributes')
+        return initial_tests_list, tests
+
 
     def get_prioritized_value(self, dict_value, test_set, test, is_boolean=False):
         """
@@ -182,43 +217,52 @@ class BasePractiTest:
         # If none of the above conditions are met, raise an exception
         raise ValueError("Could not retrieve the desired field value.")
 
-    def get_list_of_tests_by_status(self, test_set_id, status):
-        """Return all test sets under specific filter id
-        :param test_set_id: test set id as int or string
-        :param status: TestStatusEnum: PASSED, FAILED, BLOCKED, NO_RUN, N_A, ALL
-        :return: dictionary
-        """
+
+    def get_test_set_property(self, test_set_obj, test_set_property, is_custom_fields):
+        try:
+            if is_custom_fields:
+                val = test_set_obj['attributes']['custom-fields'][test_set_property]
+            else:
+                val = test_set_obj['attributes'][test_set_property]
+            if not val:
+                self.log(f'Failed to get test set property: "{is_custom_fields}", is custom field: "{str(is_custom_fields)}"')
+        except:
+            self.log('Failed to get test set property')
+
+
+# Get all tests from all the test sets objects dict by each test set Automation Run Only property
+    def get_list_of_tests_by_status(self, test_set_obj_dict):
+        test_set_ids_list = list(test_set_obj_dict.keys())
+        test_set_ids_list_str = ','.join(test_set_ids_list)
         tests_to_execute = []
         page = 1
         while True:
-            url = self.INSTANCE_URI + "&set-ids=" + str(test_set_id['id']) + "&page[number]=" + str(page)
+            url = self.INSTANCE_URI + "&set-ids=" + test_set_ids_list_str + "&page[number]=" + str(page)
             # For next iteration
             page = page + 1
-            response = static_methods.wait_for_request_200('get', url, self.HEADERS,
-                                                 f'Bad response for get_list_of_tests_by_status; Going to retry')
+            response = static_methods.wait_for_request_200('get', url, self.HEADERS, msg_on_retry=f'Bad response for get_list_of_tests_by_status; Going to retry')
             dct_sets = json.loads(response.text)
             if len(dct_sets["data"]) > 0:
                 for test_instance in dct_sets["data"]:
                     test_instance_atrr = test_instance['attributes']
                     # If status is 'ALL', will add the test with any status
-                    if status.lower() == 'all':
+                    test_set_automation_run_only = test_set_obj_dict[str(test_instance['attributes']['set-id'])]['attributes']['custom-fields'][self.PRACTITEST_AUTOMATION_RUN_ONLY].lower()
+                    if test_set_automation_run_only == 'all':
                         tests_to_execute.append(test_instance)
                     # Get only if the test matches to given status
-                    elif test_instance_atrr['run-status'].lower() == status.lower():
+                    elif test_instance_atrr['run-status'].lower() == test_set_automation_run_only:
                         tests_to_execute.append(test_instance)
-            else:
-                if page <= 2:
-                    self.log("No instances in set. " + response.text)
-                break
-                # if page > 2:
-                #     self.log("Finished getting tests from test set: '" + test_set_id['attributes']['name'] +
-                #           "' ID: " + str(test_set_id['attributes']['display-id']))
-                # else:
-                #     self.log("No instances in set. " + response.text)
-                # break
+            if len(dct_sets["data"]) < 100:
+                break #Every page is 100 items, no need to get next page
         return tests_to_execute
 
-    def get_all_testsets_under_filter(self, filter_id:str):
+    def convert_test_set_obj_list_to_dict_set_id_as_key(self, test_sets_list):
+        test_set_obj_dict = {}
+        for test_set in test_sets_list:
+            test_set_obj_dict[test_set['id']] = test_set
+        return test_set_obj_dict
+
+    def get_all_testsets_under_filter_list(self, filter_id:str):
         filter_id_list = filter_id.split(',')
         return self.get_all_testsets_under_filter_id_list(filter_id_list)
 
