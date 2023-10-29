@@ -4,6 +4,30 @@ from connector.static.core.static_methods import try_to_get_from_dict
 
 class KmsPractiTest(BasePractiTest):
     def __init__(self, more_data=None, block_id=None, *args, **kwargs):
+        """
+        Initializes the KmsPractiTest class with configurations specific to KMS.
+
+        :param more_data: Dictionary containing additional configuration data for KMS. This includes:
+            - environment: Specifies the environment setting.
+            - browser: Browser configuration.
+            - update_host_file: Flag for updating the host file.
+            - execute_at_night: Flag to determine if execution should be done at night.
+            - verify_versions: Flag to verify versions.
+            - kmsBuild: Specifies the KMS build version.
+            - playerVersion: Specifies the player version.
+            - assigned_to: Specifies the individual assigned to the test.
+            - automation_arguments: Arguments for automation.
+            - partner: Specifies the partner configuration.
+            - base_url: The base URL configuration.
+            - admin_username: Admin username for authentication.
+            - admin_password: Admin password for authentication.
+            - login_username: Login username.
+            - login_password: Login password.
+            - playerVersionV7: Specifies the player version for V7.
+        :param block_id: Block ID (if available).
+        :param args: Additional arguments.
+        :param kwargs: Additional keyword arguments.
+        """
         super().__init__(block_id=block_id, *args, **kwargs)
         # Additional initialization for KmsPractiTest
         self.ENVIRONMENT = more_data['environment']
@@ -23,8 +47,12 @@ class KmsPractiTest(BasePractiTest):
         self.LOGIN_PASSWORD = more_data['login_password']
         self.PLAYER_VERSION_V7 = more_data['playerVersionV7']
 
-    # Add any methods specific to KmsPractiTest here
+
     def start_service(self):
+        """
+        Starts the service by determining if test execution should be triggered.
+        If tests should be triggered, it invokes the execution and then pushes the test data to SQS.
+        """
         if super().is_to_trigger():
             tests_to_execute = self.trigger_execution()
             self.push_to_sqs(tests_to_execute)
@@ -33,7 +61,15 @@ class KmsPractiTest(BasePractiTest):
         else:
             self.log(f"no sets found under filter id")
 
+
     def trigger_execution(self):
+        """
+        Attempts to trigger the execution of tests.
+
+        The method fetches test sets based on provided filter IDs, processes each test's attributes, and prepares them for execution.
+
+        :return: List of tests prepared for execution.
+        """
         try:
             self.log(f"Execution Triggered")
             filter_test_sets_list = self.get_all_testsets_under_filter_list(self.PRACTITEST_TRIGGER_FILTER_ID_LIST)
