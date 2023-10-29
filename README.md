@@ -1,5 +1,5 @@
 
-# [PractiTest Connector]
+# PractiTest Connector
 A Django-based application designed to bridge PractiTest with AWS SQS, facilitating the creation of JSON configurations for desired test executions.
 
 
@@ -7,8 +7,7 @@ A Django-based application designed to bridge PractiTest with AWS SQS, facilitat
 
 - [Installation](#installation)
 - [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+
 
 ## Installation
 
