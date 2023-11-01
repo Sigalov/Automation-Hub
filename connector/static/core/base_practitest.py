@@ -1,5 +1,4 @@
 import datetime
-import logging
 import time
 from enum import Enum
 import json
@@ -232,12 +231,16 @@ class BasePractiTest:
 
     def get_all_testsets_under_specific_filter_id(self, filter_id):
         """Return all test sets under specific filter id
-        :param filter_id: filter id as int ot string
+        :param filter_id: int ot string
         :return: dictionary
         """
         url = self.SETS_URI + "&filter-id=" + str(filter_id)
-        response = static_methods.wait_for_request_200('get', url, self.HEADERS,
-                                             f'Bad response for get_all_testsets_under_specific_filter_id; Going to retry')
+        try:
+            response = static_methods.wait_for_request_200('get', url, self.HEADERS,
+                                                 f'Bad response for get_all_testsets_under_specific_filter_id; Going to retry')
+        except Exception as e:
+            self.log(f"Error occurred: {e}")
+            raise Exception
         return static_methods.get_dict_data_if_not_empty(json.loads(response.text))
 
     def get_count_of_test_sets_under_filter(self, filter_id):
