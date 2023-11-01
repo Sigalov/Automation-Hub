@@ -4,6 +4,7 @@ from retrying import retry
 WAIT_EXPONENTIAL_MULTIPLIER = 10000
 WAIT_EXPONENTIAL_MAX = 60000
 
+
 @staticmethod
 @retry(wait_exponential_multiplier=WAIT_EXPONENTIAL_MULTIPLIER, wait_exponential_max=WAIT_EXPONENTIAL_MAX)
 def send_request(method, url, headers, data=''):
@@ -30,8 +31,16 @@ def send_request(method, url, headers, data=''):
     return r
 
 
+class ImmediateExitException(Exception):
+    pass
+
+def not_immediate_exit(exception):
+    """Return True for exceptions that are not ImmediateExitException."""
+    return not isinstance(exception, ImmediateExitException)
+
+
 @staticmethod
-@retry(wait_exponential_multiplier=WAIT_EXPONENTIAL_MULTIPLIER, wait_exponential_max=WAIT_EXPONENTIAL_MAX)
+@retry(retry_on_exception=not_immediate_exit, wait_exponential_multiplier=WAIT_EXPONENTIAL_MULTIPLIER, wait_exponential_max=WAIT_EXPONENTIAL_MAX)
 def wait_for_request_200(method, url, headers, msg_on_retry, data=''):
     """Sends a GET/POST/PUT request and verify code 200, else retry.
     :param method: 'post' or 'get' or 'put' string
@@ -44,6 +53,15 @@ def wait_for_request_200(method, url, headers, msg_on_retry, data=''):
     r = send_request(method, url, headers, data)
     if r.status_code == 200:
         return r
+    elif r.status_code >= 400:
+        try:
+            error_data = json.loads(r.text)
+            error_message = error_data["errors"][0]["title"]
+            raise ImmediateExitException(error_message)
+        except json.JSONDecodeError:
+            raise ImmediateExitException("Failed to parse error message from server response.")
+        except KeyError:
+            raise ImmediateExitException("Unexpected error format.")
     else:
         raise Exception('WARNING: ' + str(msg_on_retry) + f'; status code: {r.status_code}')
 

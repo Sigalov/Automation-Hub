@@ -212,7 +212,14 @@ def create_block(request):
                 block = Block(status="NOT RUNNING", is_running=False)
                 block.save()
 
-            return JsonResponse({"message": f"New service created successfully"}, status=201)
+            return JsonResponse({
+                "message": "New block created successfully",
+                "block": {
+                    "id": block.id,
+                    "status": block.status,
+                    "is_running": block.is_running,
+                }
+            }, status=201)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid method"}, status=405)

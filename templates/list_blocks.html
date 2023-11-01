@@ -11,20 +11,20 @@
 <div class="logo-container">
     <img src="{% static 'header2.png' %}" alt="Logo">
 </div>
+<button id="createNewBlockBtn">Create New Block</button>
 
-<!-- Table for listing block details -->
-<table>
-    <thead>
-        <button id="createNewBlockBtn">Create New Block</button>
-        <div style="height: 20px;"></div>
-        <tr>
-            <th>Block ID</th>
-            <th>Status</th>
-            <th>Fields</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for block in blocks %}
+
+<div class="tabs">
+    <!-- Tab Buttons -->
+    {% for block in blocks %}
+    <button class="tablink" onclick="openTab('block{{ block.id }}', this)">{{ block.app_name }}</button>
+    {% endfor %}
+</div>
+
+<!-- Tab Contents -->
+{% for block in blocks %}
+<div id="block{{ block.id }}" class="tabcontent">
+        <table>
         <tr>
             <td class="block-id">{{ block.id }}</td>
             <td id="status_{{ block.id }}" class="{% if block.status == 'RUNNING' %}running{% else %}not-running{% endif %}">{{ block.status }}</td>
@@ -43,11 +43,26 @@
                 <button class="button-delete" onclick="deleteBlock('{{ block.id }}')">Delete</button>
             </td>
         </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </table>
+</div>
+{% endfor %}
 
 <script>
+function openTab(tabId, element) {
+    // Hide all tab contents
+    let tabContents = document.querySelectorAll('.tabcontent');
+    tabContents.forEach(content => content.style.display = "none");
+
+    // Remove "active" class from all tab buttons
+    let tabLinks = document.querySelectorAll('.tablink');
+    tabLinks.forEach(link => link.classList.remove('active'));
+
+    // Display the clicked tab content and set the button as active
+    document.getElementById(tabId).style.display = "block";
+    element.classList.add('active');
+}
+
+
 function updateConsoleOutputs() {
     // Loop through each block and fetch its console output
     document.querySelectorAll('.block-id').forEach(blockElem => {
@@ -174,11 +189,65 @@ document.getElementById('createNewBlockBtn').addEventListener('click', function(
         },
     }).then(function(response) {
         if (response.ok) {
-            location.reload(); // Refresh the page to show the new block
+            return response.json();  // Assuming the server returns the new block's details as JSON
         } else {
             console.error('Failed to create a new block.');
         }
+    }).then(function(block) {
+        console.log(block);
+        // Create a new tab button for the block
+        let tabButton = document.createElement("button");
+        tabButton.className = "tablink";
+        tabButton.innerHTML = block.app_name;
+        tabButton.onclick = function() {
+            openTab('block' + block.id, this);
+        };
+        document.querySelector('.tabs').appendChild(tabButton);
+
+        // Create a corresponding tab content panel for the block
+        let tabContent = document.createElement("div");
+        tabContent.id = 'block' + block.id;
+        tabContent.className = "tabcontent";
+        // Add the block details to the tabContent (you can add more details here)
+        tabContent.innerHTML = tabContent.innerHTML = `
+            <tr>
+                <td class="block-id">${block.id}</td>
+                <td id="status_${block.id}">${block.status}</td>
+                <td>
+                    <div>
+                        App Name: <input type="text" name="app_name_${block.id}" value="${block.app_name}"><br>
+                        PT Username: <input type="text" name="pt_username_${block.id}" value="${block.pt_username}"><br>
+                        PT Token: <input type="text" name="pt_token_${block.id}" value="${block.pt_token}"><br>
+                        AWS Access Key: <input type="text" name="aws_access_key_${block.id}" value="${block.aws_access_key}"><br>
+                        AWS Secret Key: <input type="text" name="aws_secret_key_${block.id}" value="${block.aws_secret_key}"><br>
+                        Filter ID List: <input type="text" name="filter_id_list_${block.id}" value="${block.filter_id_list}"><br>
+                    </div>
+                    <div>
+                        Console Output: <br>
+                        <textarea id="console_output_${block.id}" data-block-id="${block.id}" class="console-output">${block.console_output}</textarea>
+                    </div>
+                    <button class="button-start" onclick="startBlock(event, '${block.id}')">Start</button>
+                    <button class="button-stop" onclick="stopBlock(event, '${block.id}')">Stop</button>
+                    <button class="button-delete" onclick="deleteBlock('${block.id}')">Delete</button>
+                </td>
+            </tr>`;
+
+        document.body.appendChild(tabContent);
+
+        {#// Display the new tab content and set the new tab button as active#}
+        {#openTab('block' + block.id, tabButton);#}
+        // Assuming the new tab's ID is newTabId
+        localStorage.setItem("lastCreatedTab", 'block' + block.block.id);
+        console.log("Storing in localStorage:", 'block' + block.block.id);
+        // Reload the page
+        location.reload();
     });
 });
+
+
+
+
+
+
 
 </script>
