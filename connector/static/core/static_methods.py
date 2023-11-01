@@ -30,12 +30,14 @@ def send_request(method, url, headers, data=''):
         raise Exception("WARNING: Failed to send request, going to retry")
     return r
 
+
 class ImmediateExitException(Exception):
     pass
 
 def not_immediate_exit(exception):
     """Return True for exceptions that are not ImmediateExitException."""
     return not isinstance(exception, ImmediateExitException)
+
 
 @staticmethod
 @retry(retry_on_exception=not_immediate_exit, wait_exponential_multiplier=WAIT_EXPONENTIAL_MULTIPLIER, wait_exponential_max=WAIT_EXPONENTIAL_MAX)
@@ -63,8 +65,16 @@ def wait_for_request_200(method, url, headers, msg_on_retry, data=''):
     else:
         raise Exception('WARNING: ' + str(msg_on_retry) + f'; status code: {r.status_code}')
 
+
 @staticmethod
 def json_find_item(obj, key):
+    """
+    Recursively searches for a key in a nested dictionary or list and returns its value.
+
+    :param obj: The dictionary or list to search within.
+    :param key: The key to search for.
+    :return: The value associated with the given key, or None if the key is not found.
+    """
     try:
         if key in obj: return obj[key]
         for k, v in obj.items():
@@ -73,11 +83,21 @@ def json_find_item(obj, key):
                 if item is not None:
                     return str(item)
     except Exception:
-        print(f'WARNING: Key {str(key)} not found in json file')  # TODO maybe need to remove this print
+        print(f'WARNING: Key {str(key)} not found in json file')
         return None
+
 
 @staticmethod
 def load_json_config(json_path):
+    """
+    Loads a JSON configuration from the specified file path.
+
+    :param json_path: Path to the JSON file to be loaded.
+    :return: Dictionary containing the loaded JSON data.
+
+    Raises:
+        Exception: If there's an issue reading the file or parsing the JSON, an error message is printed and the program exits with code 1.
+    """
     try:
         with open(json_path) as f:
             return json.load(f)
@@ -85,12 +105,20 @@ def load_json_config(json_path):
         print(f'Failed to read json from {json_path}')
         exit(1)
 
+
 @staticmethod
 def get_dict_data_if_not_empty(dictionary):
+    """
+    Extracts the "data" key from a dictionary if it's not empty.
+
+    :param dictionary: The input dictionary from which to extract data.
+    :return: The value associated with the "data" key if it's not empty, otherwise None.
+    """
     if len(dictionary["data"]) != 0:
         return dictionary["data"]
     else:
         return
+
 
 @staticmethod
 def create_data_for_test_set_multiple_custom_fields(custom_fields_dict):
@@ -112,9 +140,17 @@ def create_data_for_test_set_multiple_custom_fields(custom_fields_dict):
     data = data + template_suffix
     return data
 
+
 @staticmethod
 def safe_len(obj):
+    """
+    Safely retrieves the length of an object, returning 0 if the object is None.
+
+    :param obj: The object whose length is to be determined.
+    :return: Length of the object, or 0 if the object is None.
+    """
     return len(obj) if obj is not None else 0
+
 
 @staticmethod
 def load_data_from_json(json_path):
@@ -129,6 +165,8 @@ def load_data_from_json(json_path):
     except json.JSONDecodeError:
         print(f"Error: The file {json_path} does not contain valid JSON.")
         return None
+
+
 @staticmethod
 def dict_to_single_line_json(data_dict):
     """
@@ -142,8 +180,18 @@ def dict_to_single_line_json(data_dict):
     """
     return json.dumps(data_dict)
 
+
 @staticmethod
 def try_to_get_from_dict(dictionary, key, default_value='None', is_boolean=False):
+    """
+    Attempts to retrieve a value from a dictionary based on the provided key. Returns a default value if the key is not found.
+
+    :param dictionary: The dictionary to search within.
+    :param key: The key to search for.
+    :param default_value: Value to return if the key is not found (default is 'None').
+    :param is_boolean: Flag indicating if the value should be converted to a boolean representation ('yes' to 'true', 'no' to 'false').
+    :return: The value associated with the key, or the default value if the key is not found.
+    """
     try:
         val = dictionary[key]
         # Handle boolean conversion

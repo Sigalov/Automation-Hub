@@ -1,14 +1,18 @@
 {% load static %}
+<!-- Load static files for use in the template -->
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="{% static 'connector/table_styles.css' %}">
+    <!-- Linking the stylesheet for table styles -->
+<link rel="stylesheet" type="text/css" href="{% static 'connector/table_styles.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
+<!-- Display the header logo -->
 <div class="logo-container">
     <img src="{% static 'header2.png' %}" alt="Logo">
 </div>
 <button id="createNewBlockBtn">Create New Block</button>
+
 
 <div class="tabs">
     <!-- Tab Buttons -->
@@ -23,7 +27,8 @@
         <table>
         <tr>
             <td class="block-id">{{ block.id }}</td>
-            <td id="status_{{ block.id }}">{{ block.status }}</td>
+            <td id="status_{{ block.id }}" class="{% if block.status == 'RUNNING' %}running{% else %}not-running{% endif %}">{{ block.status }}</td>
+
             <td>
                 <div>App Name: <input type="text" name="app_name_{{ block.id }}" value="{{ block.app_name }}"><br>
                 PT Username: <input type="text" name="pt_username_{{ block.id }}" value="{{ block.pt_username }}"><br>
@@ -90,8 +95,18 @@ function updateBlockStatuses() {
         fetch(`/get_block_status/${blockId}/`)
             .then(response => response.json())
             .then(data => {
+                let statusElement = document.querySelector(`#status_${blockId}`);
                 if (data.status) {
-                    document.querySelector(`#status_${blockId}`).textContent = data.status;
+                    statusElement.textContent = data.status;
+
+                    // Update the CSS class based on the block's status
+                    if (data.status === "RUNNING") {
+                        statusElement.classList.remove("not-running");
+                        statusElement.classList.add("running");
+                    } else {
+                        statusElement.classList.remove("running");
+                        statusElement.classList.add("not-running");
+                    }
                 }
             })
             .catch(error => {
@@ -99,6 +114,7 @@ function updateBlockStatuses() {
             });
     });
 }
+
 
 // Call the function every 5 seconds
 setInterval(updateConsoleOutputs, 5000);
