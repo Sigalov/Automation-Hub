@@ -341,8 +341,6 @@ class BasePractiTest:
         """Return all test sets under specific filter id
         :param filter_id: int ot string
         :return: dictionary
-
-        """
         Returns a dictionary containing all test sets associated with a specific filter ID.
 
         :param filter_id: ID of the filter, can be an integer or a string.
