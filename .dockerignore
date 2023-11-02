@@ -1,0 +1,16 @@
+__pycache__
+db.sqlite3
+.DS_Store
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+venv
+.git
+.dockerignore
+.gitignore
+node_modules
+npm-debug.log
+frontend/node_modules/
+frontend/dist/
