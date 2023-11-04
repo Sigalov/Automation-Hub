@@ -1,4 +1,4 @@
-# Quanza
+# Automation Hub
 A Django-based application designed to bridge PractiTest with AWS SQS, facilitating the creation of JSON configurations for desired test executions.
 And more automation tools.
 
